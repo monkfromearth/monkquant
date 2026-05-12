@@ -1,0 +1,24 @@
+# uv workspace root (virtual — not a package itself).
+# Members are the individual packages under packages/. Shared dev tooling and
+# config (pytest, ruff) live here so v1 (the codec) and any later v2 package share one setup.
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["packages/codec/src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["packages"]
+addopts = "-q"

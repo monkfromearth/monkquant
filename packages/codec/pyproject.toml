@@ -1,0 +1,20 @@
+[project]
+name = "monkquant"
+version = "0.1.0"
+description = "A from-scratch quantization toolkit: compress numbers to fewer bits with minimal accuracy loss. v1 compresses search vectors (scalar int8, then product quantization)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Sameer Khan" }]
+keywords = ["quantization", "vector-search", "product-quantization", "embeddings", "compression", "from-scratch"]
+
+# numpy only: it does the array arithmetic. The quantization itself — the codebooks,
+# the distance estimators — is written by hand, never delegated to a library.
+dependencies = ["numpy>=1.26"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/monkquant"]
