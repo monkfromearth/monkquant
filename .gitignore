@@ -1,0 +1,27 @@
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Datasets + benchmark outputs (downloaded / generated, never committed)
+examples/data/
+examples/out/
+*.hdf5
+*.h5
+
+# Knowledge site (Astro)
+knowledge/node_modules/
+knowledge/dist/
+knowledge/.astro/
+
+# Editors
+.idea/
+*.swp
