@@ -1,0 +1,127 @@
+---
+import '../styles/global.css';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const units = [
+  {
+    n: '0', t: 'The trade-off',
+    d: 'What quantization is, and how we measure whether it worked.',
+    lessons: [
+      'Fewer bits, on purpose',
+      'Memory versus accuracy',
+      'The ruler: recall and compression ratio',
+    ],
+  },
+  {
+    n: '1', t: 'Scalar quantization',
+    d: 'The simplest compressor: a range of floats onto 256 integer levels.',
+    lessons: [
+      'A range into 256 levels',
+      'Calibrating the range',
+    ],
+  },
+  {
+    n: '2', t: 'k-means',
+    d: 'Grouping points into clusters and learning a codebook.',
+    lessons: [
+      'Grouping points',
+      'Codebooks: a vocabulary of vectors',
+    ],
+  },
+  {
+    n: '3', t: 'Product quantization',
+    d: 'Split a vector, replace each chunk with a codebook index.',
+    lessons: [
+      'Splitting a vector into chunks',
+      'Encoding to bytes',
+      'Reconstruction error',
+    ],
+  },
+  {
+    n: '4', t: 'Searching squashed data',
+    d: 'Estimate closeness from compressed vectors, and draw the curve.',
+    lessons: [
+      'Asymmetric distance',
+      'Recall versus compression: the curve',
+      'Re-ranking the candidates',
+    ],
+  },
+  {
+    n: '5', t: 'The frontier',
+    d: 'The 2026 methods, and the debate over what is genuinely new.',
+    lessons: [
+      'Rotate, then round (TurboQuant)',
+      'RaBitQ and the error bound',
+      'The novelty debate',
+    ],
+  },
+];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Course · monkquant</title>
+  <meta name="description" content="The monkquant course map: six units that teach quantization from the trade-off through scalar int8, k-means, product quantization, and the 2026 frontier." />
+  <link rel="icon" type="image/svg+xml" href={base + "/logo.svg"} />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body class="font-sans text-mt-text">
+
+  <nav class="border-b border-mt-border bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
+      <a href={base + "/"}><img src={base + "/logo-wordmark.svg"} alt="monkquant" class="h-7" /></a>
+      <div class="flex items-center gap-5 text-sm text-mt-muted">
+        <a href={base + "/glossary"} class="hover:text-mt-text transition-colors">Glossary</a>
+        <a href="https://github.com/monkfromearth/monkquant/blob/main/docs/roadmap/index.md" class="hover:text-mt-text transition-colors">Roadmap</a>
+        <a href="https://github.com/monkfromearth/monkquant" class="hover:text-mt-text transition-colors">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="max-w-3xl mx-auto px-6 pt-16 pb-10 text-center">
+    <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mb-4">The course</h1>
+    <p class="text-lg text-mt-muted leading-relaxed max-w-xl mx-auto">
+      Six units, building from the trade-off up to the 2026 frontier. Each concept gets a demo you can drive,
+      then the implementation is left to you. Lessons land here as they are written.
+    </p>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-6 pb-20">
+    <ol class="space-y-6">
+      {units.map((u) => (
+        <li class="bg-mt-card border border-mt-border rounded-xl p-6">
+          <div class="flex items-start gap-4">
+            <span class="shrink-0 w-10 h-10 rounded-lg bg-mt-bg border border-mt-border flex items-center justify-center font-mono text-sm text-mt-muted">{u.n}</span>
+            <div class="flex-1">
+              <h2 class="text-lg font-bold">{u.t}</h2>
+              <p class="text-sm text-mt-muted leading-relaxed mb-4">{u.d}</p>
+              <ul class="space-y-2">
+                {u.lessons.map((l) => (
+                  <li class="flex items-center justify-between gap-3 text-sm border-t border-mt-border pt-2">
+                    <span>{l}</span>
+                    <span class="shrink-0 text-xs font-mono px-2 py-0.5 rounded bg-mt-bg text-mt-locked border border-mt-border">soon</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </main>
+
+  <footer class="border-t border-mt-border py-8 text-center text-mt-muted text-sm">
+    <p>
+      Built by <a href="https://monkfrom.earth" class="text-mt-accent hover:underline">Sameer Khan (@monkfromearth)</a>
+      &middot; part of the <a href="https://github.com/monkfromearth" class="text-mt-accent hover:underline">monk</a> family
+      &middot; <a href="https://github.com/monkfromearth/monkquant" class="text-mt-accent hover:underline">source</a>
+    </p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+---
+import '../styles/global.css';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const terms = [
+  { t: 'Quantization', d: 'Storing numbers using fewer bits by allowing only a limited set of levels and snapping each value to the nearest one. Saves memory, costs a little accuracy.' },
+  { t: 'Scalar quantization (int8)', d: 'The simplest form: map a range of float values onto 256 integer levels, one byte each. Roughly 4x smaller than 32-bit floats.' },
+  { t: 'Product quantization (PQ)', d: 'Split a vector into chunks, and replace each chunk with the index of its nearest entry in a small learned codebook. The classic method behind FAISS.' },
+  { t: 'Codebook', d: 'A small set of representative vectors (centroids) learned from the data. Each chunk of a vector is stored as the index of its closest codebook entry.' },
+  { t: 'Centroid', d: 'The center of a cluster of points, found by k-means. A codebook is a list of centroids.' },
+  { t: 'k-means', d: 'A clustering method: repeatedly assign each point to its nearest center, then move each center to the average of its points. Used to train PQ codebooks.' },
+  { t: 'Compression ratio', d: 'Original size divided by compressed size. int8 gives about 4x; product quantization can reach tens of times smaller.' },
+  { t: 'recall@k', d: 'Of the true k nearest neighbors of a query, how many the compressed search also finds. The accuracy side of the trade-off.' },
+  { t: 'Asymmetric distance', d: 'Keep the query at full precision and only the stored vectors compressed, then estimate distance with a small lookup table. More accurate than compressing both sides.' },
+  { t: 'Re-ranking', d: 'Use the compressed index to pick a shortlist of candidates, then re-score that shortlist with exact distances. Recovers recall for almost free.' },
+  { t: 'TurboQuant', d: 'A 2026 method (Google Research): randomly rotate a vector so its coordinates concentrate, apply an optimal per-coordinate quantizer, then a 1-bit residual correction. Reported near-optimal distortion.' },
+  { t: 'RaBitQ / Extended RaBitQ', d: 'A quantization method with a proven error bound (Gao & Long). Extended RaBitQ generalizes it to several bits per dimension. Shipped in Milvus and Elasticsearch.' },
+];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glossary · monkquant</title>
+  <meta name="description" content="Plain-English definitions of the key terms behind monkquant: quantization, scalar int8, product quantization, codebooks, recall@k, asymmetric distance, TurboQuant, RaBitQ." />
+  <link rel="icon" type="image/svg+xml" href={base + "/logo.svg"} />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body class="font-sans text-mt-text">
+
+  <nav class="border-b border-mt-border bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
+      <a href={base + "/"}><img src={base + "/logo-wordmark.svg"} alt="monkquant" class="h-7" /></a>
+      <div class="flex items-center gap-5 text-sm text-mt-muted">
+        <a href={base + "/learn"} class="hover:text-mt-text transition-colors">Course</a>
+        <a href="https://github.com/monkfromearth/monkquant" class="hover:text-mt-text transition-colors">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="max-w-3xl mx-auto px-6 pt-16 pb-10 text-center">
+    <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Glossary</h1>
+    <p class="text-lg text-mt-muted leading-relaxed max-w-xl mx-auto">
+      The vocabulary of quantization, in plain English. The precise term is here, but the meaning leads.
+    </p>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-6 pb-20">
+    <dl class="space-y-4">
+      {terms.map((x) => (
+        <div class="bg-mt-card border border-mt-border rounded-xl p-5">
+          <dt class="font-semibold mb-1">{x.t}</dt>
+          <dd class="text-sm text-mt-muted leading-relaxed">{x.d}</dd>
+        </div>
+      ))}
+    </dl>
+  </main>
+
+  <footer class="border-t border-mt-border py-8 text-center text-mt-muted text-sm">
+    <p>
+      Built by <a href="https://monkfrom.earth" class="text-mt-accent hover:underline">Sameer Khan (@monkfromearth)</a>
+      &middot; part of the <a href="https://github.com/monkfromearth" class="text-mt-accent hover:underline">monk</a> family
+      &middot; <a href="https://github.com/monkfromearth/monkquant" class="text-mt-accent hover:underline">source</a>
+    </p>
+  </footer>
+
+</body>
+</html>

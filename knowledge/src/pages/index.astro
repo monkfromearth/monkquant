@@ -1,0 +1,151 @@
+---
+import '../styles/global.css';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const jobs = [
+  { t: 'Rounds each number to a nearby level', d: 'Scalar quantization: a whole range of values mapped onto 256 integer levels, one byte each.' },
+  { t: 'Swaps chunks for the closest codebook entry', d: 'Product quantization: split a vector into pieces, replace each with its nearest learned centroid.' },
+  { t: 'Keeps the question exact, the data squashed', d: 'Asymmetric distance: estimate closeness from compressed vectors without ever decompressing them.' },
+  { t: 'Measures exactly what the squashing costs', d: 'Recall against exact results, plotted against the memory saved. The ruler is the whole point.' },
+];
+
+const units = [
+  { n: '0', t: 'The trade-off', d: 'What quantization is, memory versus accuracy, and the ruler that measures the loss.' },
+  { n: '1', t: 'Scalar quantization', d: 'Map a range of floats onto 256 integer levels, one byte each. The hello world.' },
+  { n: '2', t: 'k-means', d: 'Group points into clusters and learn a codebook. The tool product quantization is built on.' },
+  { n: '3', t: 'Product quantization', d: 'Split a vector, replace each chunk with a codebook index, measure the reconstruction error.' },
+  { n: '4', t: 'Searching squashed data', d: 'Asymmetric distance, the recall-versus-compression curve, and a cheap re-ranking pass.' },
+  { n: '5', t: 'The frontier', d: 'TurboQuant, Extended RaBitQ, and the live debate over what is genuinely new.' },
+];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>monkquant · Quantization, from scratch</title>
+  <meta name="description" content="monkquant is a quantization toolkit built from scratch: store numbers in fewer bits with minimal accuracy loss, and measure exactly what the trade costs. v1 compresses search vectors with scalar int8 and product quantization. Built in the open, and taught." />
+  <link rel="icon" type="image/svg+xml" href={base + "/logo.svg"} />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body class="font-sans text-mt-text">
+
+  <!-- nav -->
+  <nav class="border-b border-mt-border bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
+      <img src={base + "/logo-wordmark.svg"} alt="monkquant" class="h-7" />
+      <div class="flex items-center gap-5 text-sm text-mt-muted">
+        <a href={base + "/learn"} class="hover:text-mt-text transition-colors">Course</a>
+        <a href="https://github.com/monkfromearth/monkquant/blob/main/docs/roadmap/index.md" class="hover:text-mt-text transition-colors">Roadmap</a>
+        <a href="https://github.com/monkfromearth/monkquant" class="hover:text-mt-text transition-colors">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- hero -->
+  <header class="max-w-3xl mx-auto px-6 pt-20 pb-16 text-center">
+    <img src={base + "/logo.svg"} alt="" class="w-20 h-20 mx-auto mb-8" />
+    <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-5">
+      Store numbers in <span class="text-mt-accent">fewer bits</span>.
+    </h1>
+    <p class="text-lg text-mt-muted leading-relaxed max-w-xl mx-auto mb-8">
+      monkquant is a quantization toolkit, built from scratch. It squashes vectors into a fraction of the
+      memory, estimates closeness straight from the squashed form, and measures exactly how much accuracy
+      that costs. Built in the open, and taught one piece at a time.
+    </p>
+    <div class="flex items-center justify-center gap-3">
+      <a href={base + "/learn"} class="px-5 py-2.5 rounded-lg bg-mt-accent text-white font-semibold text-sm hover:opacity-90 transition-opacity">Start the course</a>
+      <a href="https://github.com/monkfromearth/monkquant" class="px-5 py-2.5 rounded-lg border border-mt-border bg-white font-semibold text-sm hover:border-mt-accent transition-colors">View on GitHub</a>
+    </div>
+  </header>
+
+  <!-- metaphor -->
+  <section class="max-w-3xl mx-auto px-6 py-14 border-t border-mt-border">
+    <p class="text-xs font-mono uppercase tracking-widest text-mt-accent mb-3">The idea</p>
+    <h2 class="text-2xl font-bold mb-4">Rounding, on purpose</h2>
+    <p class="text-mt-muted leading-relaxed mb-8 max-w-2xl">
+      A gem cutter takes a rough stone with endless tiny irregularities and reduces it to a handful of clean
+      flat facets. It loses a little of the original surface, but what is left is lighter, sharper, and far
+      easier to carry. Quantization does the same to numbers: keep only a few allowed levels, snap every
+      value to the nearest one. Each thing monkquant does is one more way of choosing those levels well:
+    </p>
+    <ul class="grid sm:grid-cols-2 gap-3">
+      {jobs.map((j) => (
+        <li class="bg-mt-card border border-mt-border rounded-xl p-5">
+          <p class="font-semibold mb-1">{j.t}</p>
+          <p class="text-sm text-mt-muted leading-relaxed">{j.d}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <!-- two stages -->
+  <section class="max-w-3xl mx-auto px-6 py-14 border-t border-mt-border">
+    <p class="text-xs font-mono uppercase tracking-widest text-mt-accent mb-3">How it's built</p>
+    <h2 class="text-2xl font-bold mb-8">Two stages</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="bg-mt-card border border-mt-border rounded-xl p-6">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-xs font-mono px-2 py-0.5 rounded bg-mt-accentLight text-mt-accent font-semibold">v1</span>
+          <h3 class="font-bold">Vector Quantization</h3>
+        </div>
+        <p class="text-sm text-mt-muted leading-relaxed">Scalar int8, then product quantization, and a
+          recall-versus-compression benchmark on real embeddings. The textbook baselines, small in lines,
+          deep in ideas.</p>
+      </div>
+      <div class="bg-mt-card border border-mt-border rounded-xl p-6">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-xs font-mono px-2 py-0.5 rounded bg-mt-lavLight text-mt-lav font-semibold">v2</span>
+          <h3 class="font-bold">TurboQuant vs RaBitQ</h3>
+        </div>
+        <p class="text-sm text-mt-muted leading-relaxed">The 2026 methods benchmarked head to head against
+          that baseline on the same plot, with a written verdict on the novelty debate, then new surfaces
+          (KV cache, weights).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- course outline -->
+  <section id="course" class="max-w-3xl mx-auto px-6 py-14 border-t border-mt-border">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-xs font-mono uppercase tracking-widest text-mt-accent">The course</p>
+      <span class="text-xs font-mono px-2 py-0.5 rounded bg-mt-greenLight text-mt-green font-semibold">in progress</span>
+    </div>
+    <h2 class="text-2xl font-bold mb-4">What you'll learn</h2>
+    <p class="text-mt-muted leading-relaxed mb-8 max-w-2xl">
+      An interactive course that teaches the concepts behind monkquant, then leaves the implementation to
+      you, which is where the understanding sticks. Six units, each concept with a demo you can drive. Start
+      with the trade-off.
+    </p>
+    <ol class="space-y-3">
+      {units.map((u) => (
+        <li>
+          <div class="flex items-start gap-4 bg-mt-card border border-mt-border rounded-xl p-5">
+            <span class="shrink-0 w-9 h-9 rounded-lg bg-mt-bg border border-mt-border flex items-center justify-center font-mono text-sm text-mt-muted">{u.n}</span>
+            <div>
+              <p class="font-semibold">{u.t}</p>
+              <p class="text-sm text-mt-muted leading-relaxed">{u.d}</p>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+    <div class="mt-6 text-center">
+      <a href={base + "/learn"} class="text-sm font-semibold text-mt-accent hover:underline">See the full course map &rarr;</a>
+    </div>
+  </section>
+
+  <!-- footer -->
+  <footer class="border-t border-mt-border py-8 mt-6 text-center text-mt-muted text-sm">
+    <p>
+      Built by <a href="https://monkfrom.earth" class="text-mt-accent hover:underline">Sameer Khan (@monkfromearth)</a>
+      &middot; part of the <a href="https://github.com/monkfromearth" class="text-mt-accent hover:underline">monk</a> family
+      &middot; <a href="https://github.com/monkfromearth/monkquant" class="text-mt-accent hover:underline">source</a>
+    </p>
+  </footer>
+
+</body>
+</html>
