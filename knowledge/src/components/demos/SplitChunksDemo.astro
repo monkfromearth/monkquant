@@ -1,0 +1,70 @@
+---
+/**
+ * A 12-number vector split into M chunks. Change M and watch the chunks regroup and the
+ * stored size (one byte per chunk) change. (Lesson 3.1.)
+ */
+const W = 360, H = 150, padX = 20, baseY = 110, cellW = (360 - 40) / 12;
+const vals = [0.4, 0.7, 0.55, 0.9, 0.3, 0.6, 0.8, 0.45, 0.5, 0.75, 0.35, 0.65];
+const Ms = [2, 3, 4, 6];
+---
+
+<div class="mt-demo mt-split-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-padx={padX} data-basey={baseY} data-cellw={cellW}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">12 numbers, split into M chunks</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="a vector of twelve numbers grouped into chunks">
+        <g data-bars></g>
+        <g data-brackets></g>
+    </svg>
+
+    <div class="flex items-center justify-center gap-2 mt-1 mb-3">
+        {Ms.map((m) => (
+            <button data-m={m} class="mt-mbtn text-xs font-mono px-3 py-1 rounded-lg border border-mt-border hover:border-mt-accent transition-colors">M = {m}</button>
+        ))}
+    </div>
+    <p class="text-center font-mono text-sm">
+        <span data-m-out class="text-mt-accent font-semibold">4</span> chunks
+        &nbsp;&rarr;&nbsp; <span data-bytes class="text-mt-lav font-semibold">4</span> bytes
+        &nbsp;&middot;&nbsp; <span data-ratio class="text-mt-muted">12&times;</span> smaller than 12 floats
+    </p>
+</div>
+
+<script>
+    document.querySelectorAll<HTMLElement>('.mt-split-demo').forEach((root) => {
+        const W = Number(root.dataset.w), padX = Number(root.dataset.padx), baseY = Number(root.dataset.basey), cellW = Number(root.dataset.cellw);
+        const barsG = root.querySelector<SVGGElement>('[data-bars]')!;
+        const brG = root.querySelector<SVGGElement>('[data-brackets]')!;
+        const mOut = root.querySelector<HTMLElement>('[data-m-out]')!;
+        const bytesEl = root.querySelector<HTMLElement>('[data-bytes]')!;
+        const ratioEl = root.querySelector<HTMLElement>('[data-ratio]')!;
+        const btns = Array.from(root.querySelectorAll<HTMLButtonElement>('.mt-mbtn'));
+        const vals = [0.4, 0.7, 0.55, 0.9, 0.3, 0.6, 0.8, 0.45, 0.5, 0.75, 0.35, 0.65];
+        const palette = ['#C96F5A', '#7E7FBC', '#5E80C9', '#4F9D7B', '#C2873B', '#B0708F'];
+
+        let M = 4;
+        function render() {
+            const size = 12 / M;
+            let bars = '';
+            vals.forEach((v, i) => {
+                const ci = Math.floor(i / size);
+                const x = padX + i * cellW + 2, h = 8 + v * 70, y = baseY - h;
+                bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(cellW - 4).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${palette[ci % palette.length]}" opacity="0.85" />`;
+            });
+            barsG.innerHTML = bars;
+            let br = '';
+            for (let c = 0; c < M; c++) {
+                const x0 = padX + c * size * cellW + 2, x1 = padX + (c + 1) * size * cellW - 2;
+                br += `<line x1="${x0.toFixed(1)}" y1="120" x2="${x1.toFixed(1)}" y2="120" stroke="${palette[c % palette.length]}" stroke-width="2.5" stroke-linecap="round" />`;
+                br += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="138" text-anchor="middle" font-size="10" font-family="monospace" fill="#6B6560">1 byte</text>`;
+            }
+            brG.innerHTML = br;
+            mOut.textContent = String(M);
+            bytesEl.textContent = String(M);
+            ratioEl.textContent = `${Math.round((12 * 4) / M)}×`;
+            btns.forEach((b) => b.classList.toggle('mt-mbtn-on', Number(b.dataset.m) === M));
+        }
+        btns.forEach((b) => b.addEventListener('click', () => { M = Number(b.dataset.m); render(); }));
+        render();
+    });
+</script>
+
+<style>.mt-mbtn-on { border-color: #C96F5A; background: #FBEEE9; color: #C96F5A; }</style>

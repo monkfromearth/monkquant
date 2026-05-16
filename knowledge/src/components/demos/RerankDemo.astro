@@ -1,0 +1,101 @@
+---
+/**
+ * PQ returns a rough shortlist, which can miss true neighbours. Turn on re-ranking and
+ * grow the shortlist N: the exact re-score pulls the true top-4 back in. (Lesson 4.3.)
+ */
+const W = 360, H = 250, top = 14, bot = 190, padX = 26;
+const Ns = [4, 6, 8, 12];
+---
+
+<div class="mt-demo mt-rerank-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-top={top} data-bot={bot} data-padx={padX}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Grow the shortlist, then re-rank it exactly</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="a rough shortlist re-ranked exactly to recover the true nearest neighbours">
+        <g data-points></g>
+        <circle data-query r="7" fill="#322E45" stroke="#fff" stroke-width="2" />
+    </svg>
+
+    <div class="flex items-center justify-center gap-2 mt-1 mb-3 flex-wrap">
+        <span class="text-xs font-mono text-mt-muted mr-1">shortlist N</span>
+        {Ns.map((n) => (
+            <button data-n={n} class="mt-nbtn2 text-xs font-mono px-2.5 py-1 rounded-lg border border-mt-border hover:border-mt-accent transition-colors">{n}</button>
+        ))}
+        <button data-rerank class="text-xs font-mono px-3 py-1 rounded-lg border border-mt-border hover:border-mt-accent transition-colors ml-2">re-rank: off</button>
+    </div>
+    <p class="text-center font-mono text-sm">
+        recall@4 <span data-recall class="text-mt-accent font-semibold">--</span>
+    </p>
+    <p class="text-center text-xs text-mt-muted mt-2">
+        <span class="inline-block w-2 h-2 rounded-full align-middle" style="background:#4F9D7B"></span> true neighbour, found
+        &nbsp; <span class="inline-block w-2 h-2 rounded-full align-middle" style="background:#C96F5A"></span> true, missed
+        &nbsp; <span class="inline-block w-2 h-2 rounded-full align-middle" style="background:#C2873B"></span> returned, wrong
+    </p>
+</div>
+
+<script>
+    import { gsap } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-rerank-demo').forEach((root) => {
+        const W = Number(root.dataset.w), top = Number(root.dataset.top), bot = Number(root.dataset.bot), padX = Number(root.dataset.padx);
+        const pointsG = root.querySelector<SVGGElement>('[data-points]')!;
+        const queryEl = root.querySelector<SVGCircleElement>('[data-query]')!;
+        const recallEl = root.querySelector<HTMLElement>('[data-recall]')!;
+        const nbtns = Array.from(root.querySelectorAll<HTMLButtonElement>('.mt-nbtn2'));
+        const rerankBtn = root.querySelector<HTMLButtonElement>('[data-rerank]')!;
+        const K = 4;
+
+        const pts = [
+          [50, 18], [60, 22], [42, 24], [55, 30], [46, 14], [66, 28], [37, 20],
+          [58, 10], [64, 40], [33, 38], [74, 18], [48, 40], [26, 26], [70, 8], [40, 44], [52, 6],
+        ];
+        const query = [50, 26];
+        const dx = (x: number) => padX + (x / 100) * (W - 2 * padX);
+        const dy = (y: number) => top + (y / 50) * (bot - top);
+        gsap.set(queryEl, { attr: { cx: dx(query[0]), cy: dy(query[1]) } });
+
+        const d2 = (a: number[], b: number[]) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+        const cell = 13;
+        const snap = (p: number[]) => [Math.round(p[0] / cell) * cell, Math.round(p[1] / cell) * cell];
+        const order = (key: (i: number) => number) => pts.map((_, i) => i).sort((a, b) => key(a) - key(b));
+
+        const exactOrder = order((i) => d2(query, pts[i]));
+        const approxOrder = order((i) => d2(query, snap(pts[i])));
+        const trueTop = new Set(exactOrder.slice(0, K));
+
+        let N = 8, rerank = false;
+        function render() {
+            let result: number[];
+            if (!rerank) {
+                result = approxOrder.slice(0, K);
+            } else {
+                const shortlist = approxOrder.slice(0, N);
+                result = shortlist.sort((a, b) => d2(query, pts[a]) - d2(query, pts[b])).slice(0, K);
+            }
+            const resultSet = new Set(result);
+            let kept = 0;
+            let html = '';
+            pts.forEach((p, i) => {
+                const inTrue = trueTop.has(i), inRes = resultSet.has(i);
+                let fill = '#D8D2CB', r = 4.5;
+                if (inTrue && inRes) { fill = '#4F9D7B'; r = 6.5; kept++; }
+                else if (inTrue && !inRes) { fill = '#C96F5A'; r = 6.5; }
+                else if (!inTrue && inRes) { fill = '#C2873B'; r = 6; }
+                html += `<circle cx="${dx(p[0]).toFixed(1)}" cy="${dy(p[1]).toFixed(1)}" r="${r}" fill="${fill}" opacity="0.9" />`;
+            });
+            pointsG.innerHTML = html;
+            recallEl.textContent = (kept / K).toFixed(2);
+            nbtns.forEach((b) => b.classList.toggle('mt-nbtn2-on', Number(b.dataset.n) === N));
+            nbtns.forEach((b) => (b.style.opacity = rerank ? '1' : '0.4'));
+            rerankBtn.textContent = `re-rank: ${rerank ? 'on' : 'off'}`;
+            rerankBtn.classList.toggle('mt-rr-on', rerank);
+        }
+        nbtns.forEach((b) => b.addEventListener('click', () => { N = Number(b.dataset.n); if (!rerank) rerank = true; render(); }));
+        rerankBtn.addEventListener('click', () => { rerank = !rerank; render(); });
+        render();
+    });
+</script>
+
+<style>
+    .mt-nbtn2-on { border-color: #C96F5A; background: #FBEEE9; color: #C96F5A; }
+    .mt-rr-on { border-color: #4F9D7B; background: #EFF8F2; color: #4F9D7B; }
+</style>

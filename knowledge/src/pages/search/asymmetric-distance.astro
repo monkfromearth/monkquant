@@ -1,0 +1,70 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import AsymmetricDistanceDemo from '../../components/demos/AsymmetricDistanceDemo.astro';
+---
+
+<LessonLayout title="Asymmetric distance" lessonNumber="4.1" section="Searching squashed data">
+
+    <LessonHeader lessonNumber="4.1" title="Asymmetric distance" description="To search compressed vectors you must estimate distances from the codes. The trick is to keep the query exact and only meet the data halfway.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="default">9 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Do not blur both sides</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Search asks one question over and over: how far is the query from each stored vector? But the
+            stored vectors are now codes, not real values. The naive fix is to quantize the query too and
+            compare code to code. That throws away accuracy on both sides at once. The better move is
+            <strong>asymmetric</strong>: keep the query exactly as it is, and measure to the stored vector's
+            representative.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Drag the query below. The coral dashed line is the asymmetric estimate, measured to the stored
+            point's centre; it stays close to the true grey line. The readout also shows the error if you had
+            snapped the query too, which is consistently worse.
+        </p>
+
+        <AsymmetricDistanceDemo />
+
+        <InsightBox>
+            <p class="text-sm"><strong>Asymmetric distance</strong> keeps the query at full precision and
+            measures to each stored vector's representative. It is more accurate than quantizing both sides.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">And it is fast</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Asymmetric distance is not only more accurate, it is cheap to compute at scale. For a query, you
+            precompute its distance to all 256 entries in each chunk's codebook once, building a small lookup
+            table. After that, any stored vector's estimated distance is just a handful of table lookups
+            added together, one per chunk. Millions of comparisons become millions of cheap sums, no
+            decompression required.
+        </p>
+        <p class="text-mt-muted leading-relaxed">
+            That is the whole reason compressed search is viable: the codes never have to be expanded back
+            into vectors to be compared.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">Asymmetric distance keeps the query exact and measures only to the stored vector's representative.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">It is more accurate than snapping both the query and the data.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">A per-query lookup table makes each comparison a few cheap sums, with no decompression.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/pq/reconstruction-error" prevLabel="Prev: Reconstruction error"
+        nextHref="/search/recall-vs-compression" nextLabel="Next: Recall vs compression"
+    />
+
+</LessonLayout>

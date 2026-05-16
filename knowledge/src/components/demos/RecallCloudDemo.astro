@@ -1,0 +1,96 @@
+---
+/**
+ * A query sits in a cloud of points. Drag the "coarseness" knob: as quantization gets
+ * coarser, the points blur onto a grid, the wrong neighbours get returned, and recall@4
+ * falls from a perfect 1.0. (Lesson 0.3.)
+ */
+const W = 360, H = 230, plotW = 360, plotTop = 12, plotBot = 170;
+---
+
+<div class="mt-demo mt-recall-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-top={plotTop} data-bot={plotBot}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Drag coarseness, watch recall fall</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="a query and its nearest neighbours; coarser quantization returns the wrong neighbours">
+        <g data-points></g>
+        <circle data-query r="7" fill="#322E45" stroke="#fff" stroke-width="2" />
+        <!-- coarseness track + knob -->
+        <line x1="28" y1="205" x2={W - 28} y2="205" stroke="#EFE8E2" stroke-width="6" stroke-linecap="round" />
+        <circle data-knob cx="28" cy="205" r="10" fill="#fff" stroke="#C96F5A" stroke-width="3" class="mt-grab" />
+    </svg>
+
+    <p class="text-center font-mono text-sm mt-1">
+        coarseness <span data-c class="text-mt-accent font-semibold">0.00</span>
+        &nbsp;&middot;&nbsp; recall@4 <span data-recall class="text-mt-lav font-semibold">1.00</span>
+    </p>
+    <p class="text-center text-xs text-mt-muted mt-2">
+        <span class="inline-block w-2 h-2 rounded-full align-middle" style="background:#4F9D7B"></span> kept
+        &nbsp; <span class="inline-block w-2 h-2 rounded-full align-middle" style="background:#C96F5A"></span> a true neighbour, now missed
+    </p>
+</div>
+
+<script>
+    import { gsap, draggable, clamp, REDUCED } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-recall-demo').forEach((root) => {
+        const W = Number(root.dataset.w), top = Number(root.dataset.top), bot = Number(root.dataset.bot);
+        const svg = root.querySelector<SVGSVGElement>('svg')!;
+        const pointsG = root.querySelector<SVGGElement>('[data-points]')!;
+        const queryEl = root.querySelector<SVGCircleElement>('[data-query]')!;
+        const knob = root.querySelector<SVGCircleElement>('[data-knob]')!;
+        const cEl = root.querySelector<HTMLElement>('[data-c]')!;
+        const recallEl = root.querySelector<HTMLElement>('[data-recall]')!;
+        const K = 4, padX = 28;
+
+        // data space 0..100 (x), 0..60 (y); fixed cloud + query
+        const pts = [
+          [50, 30], [62, 26], [40, 36], [58, 42], [44, 20], [70, 34], [33, 28],
+          [55, 16], [68, 48], [30, 46], [78, 22], [48, 50], [22, 32], [74, 12], [38, 52],
+        ];
+        const query = [50, 31];
+        const dx = (x: number) => padX + (x / 100) * (W - 2 * padX);
+        const dy = (y: number) => top + (y / 60) * (bot - top);
+        const kx = (frac: number) => padX + frac * (W - 2 * padX);
+        const invK = (px: number) => clamp((px - padX) / (W - 2 * padX), 0, 1);
+
+        gsap.set(queryEl, { attr: { cx: dx(query[0]), cy: dy(query[1]) } });
+
+        const dist2 = (a: number[], b: number[]) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+        const nearestK = (cloud: number[][]) =>
+            cloud.map((p, i) => [i, dist2(query, p)] as [number, number])
+                 .sort((a, b) => a[1] - b[1]).slice(0, K).map((e) => e[0]);
+
+        const trueK = new Set(nearestK(pts));
+        let c = 0;
+
+        function render() {
+            // quantize: snap each point to a grid whose cell grows with coarseness
+            const cell = 1 + c * 22;
+            const snap = (p: number[]) => [Math.round(p[0] / cell) * cell, Math.round(p[1] / cell) * cell];
+            const approxK = new Set(nearestK(pts.map(snap)));
+
+            let kept = 0;
+            let html = '';
+            pts.forEach((p, i) => {
+                const inTrue = trueK.has(i), inApprox = approxK.has(i);
+                let fill = '#D8D2CB', r = 5;
+                if (inTrue && inApprox) { fill = '#4F9D7B'; r = 6.5; kept++; }      // kept neighbour
+                else if (inTrue && !inApprox) { fill = '#C96F5A'; r = 6.5; }        // true neighbour now missed
+                else if (!inTrue && inApprox) { fill = '#C2873B'; r = 6; }          // wrongly returned
+                html += `<circle cx="${dx(p[0]).toFixed(1)}" cy="${dy(p[1]).toFixed(1)}" r="${r}" fill="${fill}" />`;
+            });
+            pointsG.innerHTML = html;
+            cEl.textContent = c.toFixed(2);
+            recallEl.textContent = (kept / K).toFixed(2);
+        }
+
+        function setC(val: number) {
+            c = clamp(val, 0, 1);
+            const to = { attr: { cx: kx(c) } };
+            REDUCED ? gsap.set(knob, to) : gsap.to(knob, { ...to, duration: 0.1, overwrite: true });
+            render();
+        }
+
+        draggable(svg, knob, (x) => setC(invK(x)));
+        setC(0);
+    });
+</script>

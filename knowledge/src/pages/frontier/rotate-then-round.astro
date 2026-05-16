@@ -1,0 +1,76 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import RotateRoundDemo from '../../components/demos/RotateRoundDemo.astro';
+---
+
+<LessonLayout title="Rotate, then round (TurboQuant)" lessonNumber="5.1" section="The frontier">
+
+    <LessonHeader lessonNumber="5.1" title="Rotate, then round (TurboQuant)" description="The 2026 method's first move is a surprising one: spin the vector at random before quantizing it. That rotation is what makes a simple quantizer near-optimal.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="links">research</TagBadge>
+        <TagBadge variant="default">9 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Spread the error evenly</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            A plain quantizer treats every coordinate the same, which only works well if every coordinate
+            carries a similar share of the spread. Real vectors are lumpy: one direction may hold most of the
+            variation while another holds almost none, so a fixed quantizer wastes precision on the quiet
+            coordinates and runs short on the loud ones. A random <strong>rotation</strong> fixes this. After
+            spinning the vector, the spread is shared evenly across all coordinates, and a single
+            per-coordinate quantizer becomes close to the best you could do.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Drag the handle below to rotate an elongated cloud. When all the spread sits on one axis the error
+            is lopsided; rotate it and the two axes balance. In hundreds of dimensions a random rotation does
+            this balancing automatically, without ever looking at the data.
+        </p>
+
+        <RotateRoundDemo />
+
+        <InsightBox>
+            <p class="text-sm">A random rotation evens the spread across all coordinates, so one simple
+            per-coordinate quantizer becomes near-optimal. It is <strong>data-oblivious</strong>: no training,
+            no looking at the dataset first.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">The two stages of TurboQuant</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            <strong>TurboQuant</strong> (Zandieh, Daliri, Hadian and Mirrokni at Google Research, arXiv 2504.19874)
+            puts this to work in two stages. First, rotate the vector and apply an optimal per-coordinate
+            scalar quantizer, the part the demo shows. Second, take the small leftover error and correct it
+            with a single extra bit per coordinate, which removes the bias from the distance estimate. The
+            paper reports a distortion within a small constant factor of the information-theoretic best
+            possible.
+        </p>
+        <p class="text-mt-muted leading-relaxed">
+            The same method was first aimed at compressing an LLM's attention memory, then shown to apply to
+            search vectors too. Widely repeated headline figures, such as specific memory multipliers or
+            wins over a particular baseline, come from vendor write-ups rather than the paper, so treat them
+            as claims to verify, not facts.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">A random rotation spreads a vector's variation evenly, making a simple per-coordinate quantizer near-optimal.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">TurboQuant is rotate-and-quantize, then a 1-bit residual correction that removes bias from the estimate.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">It is data-oblivious, and the loudest headline numbers are vendor claims to verify, not paper facts.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/search/re-ranking" prevLabel="Prev: Re-ranking"
+        nextHref="/frontier/rabitq-bound" nextLabel="Next: RaBitQ and the error bound"
+    />
+
+</LessonLayout>

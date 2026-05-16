@@ -1,0 +1,101 @@
+---
+/**
+ * Drag the three centres; points recolour to their nearest centre live. Press Step to run
+ * one round of k-means: reassign, then move each centre to the average of its points. (Lesson 2.1.)
+ */
+const W = 360, H = 260, top = 14, bot = 210, padX = 24;
+---
+
+<div class="mt-demo mt-kmeans-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-top={top} data-bot={bot} data-padx={padX}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Drag a centre, or press Step to let k-means move them</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="points coloured by their nearest centre; k-means moves the centres to the average of their points">
+        <g data-points></g>
+        <g data-centroids>
+            <circle data-c="0" r="11" fill="#C96F5A" stroke="#fff" stroke-width="3" class="mt-grab" />
+            <circle data-c="1" r="11" fill="#7E7FBC" stroke="#fff" stroke-width="3" class="mt-grab" />
+            <circle data-c="2" r="11" fill="#5E80C9" stroke="#fff" stroke-width="3" class="mt-grab" />
+        </g>
+    </svg>
+
+    <div class="flex items-center justify-center gap-3 mt-2">
+        <button data-step class="text-xs font-mono px-4 py-1.5 rounded-lg bg-mt-accent text-white font-semibold hover:opacity-90 transition-opacity">Step</button>
+        <button data-reset class="text-xs font-mono px-4 py-1.5 rounded-lg border border-mt-border hover:border-mt-accent transition-colors">Reset</button>
+        <span class="text-xs font-mono text-mt-muted">moved <span data-shift>--</span></span>
+    </div>
+</div>
+
+<script>
+    import { gsap, draggable, REDUCED } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-kmeans-demo').forEach((root) => {
+        const W = Number(root.dataset.w), top = Number(root.dataset.top), bot = Number(root.dataset.bot), padX = Number(root.dataset.padx);
+        const svg = root.querySelector<SVGSVGElement>('svg')!;
+        const pointsG = root.querySelector<SVGGElement>('[data-points]')!;
+        const cEls = Array.from(root.querySelectorAll<SVGCircleElement>('[data-c]'));
+        const stepBtn = root.querySelector<HTMLButtonElement>('[data-step]')!;
+        const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]')!;
+        const shiftEl = root.querySelector<HTMLElement>('[data-shift]')!;
+        const colors = ['#C96F5A', '#7E7FBC', '#5E80C9'];
+
+        const dx = (x: number) => padX + (x / 100) * (W - 2 * padX);
+        const dy = (y: number) => top + (y / 100) * (bot - top);
+        const ix = (px: number) => ((px - padX) / (W - 2 * padX)) * 100;
+        const iy = (py: number) => ((py - top) / (bot - top)) * 100;
+
+        // three blobs of points (data space 0..100)
+        const blob = (cx: number, cy: number, n: number, spread: number) =>
+            Array.from({ length: n }, (_, i) => {
+                const a = (i * 2.39996) % (Math.PI * 2), r = spread * (0.3 + ((i * 7) % 10) / 12);
+                return [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+            });
+        const pts = [...blob(28, 30, 8, 14), ...blob(70, 26, 8, 14), ...blob(50, 75, 8, 14)];
+
+        const startC = () => [[20, 70], [42, 22], [60, 60]].map((p) => [...p]);
+        let cs = startC();
+
+        const place = (animate: boolean) => cs.forEach((c, i) => {
+            const to = { attr: { cx: dx(c[0]), cy: dy(c[1]) } };
+            (REDUCED || !animate) ? gsap.set(cEls[i], to) : gsap.to(cEls[i], { ...to, duration: 0.4, ease: 'power2.out' });
+        });
+
+        const nearest = (p: number[]) => {
+            let bi = 0, bd = Infinity;
+            cs.forEach((c, i) => { const d = (p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2; if (d < bd) { bd = d; bi = i; } });
+            return bi;
+        };
+
+        function paint() {
+            let html = '';
+            pts.forEach((p) => {
+                html += `<circle cx="${dx(p[0]).toFixed(1)}" cy="${dy(p[1]).toFixed(1)}" r="4.5" fill="${colors[nearest(p)]}" opacity="0.75" />`;
+            });
+            pointsG.innerHTML = html;
+        }
+
+        function step() {
+            const sums = cs.map(() => [0, 0, 0]);
+            pts.forEach((p) => { const k = nearest(p); sums[k][0] += p[0]; sums[k][1] += p[1]; sums[k][2]++; });
+            let moved = 0;
+            cs = cs.map((c, i) => {
+                if (!sums[i][2]) return c;
+                const nx = sums[i][0] / sums[i][2], ny = sums[i][1] / sums[i][2];
+                moved += Math.hypot(nx - c[0], ny - c[1]);
+                return [nx, ny];
+            });
+            shiftEl.textContent = moved.toFixed(1);
+            place(true);
+            paint();
+        }
+
+        cEls.forEach((el, i) => draggable(svg, el, (px, py) => {
+            cs[i] = [Math.max(0, Math.min(100, ix(px))), Math.max(0, Math.min(100, iy(py)))];
+            gsap.set(el, { attr: { cx: dx(cs[i][0]), cy: dy(cs[i][1]) } });
+            paint();
+        }));
+        stepBtn.addEventListener('click', step);
+        resetBtn.addEventListener('click', () => { cs = startC(); shiftEl.textContent = '--'; place(true); paint(); });
+
+        place(false); paint();
+    });
+</script>

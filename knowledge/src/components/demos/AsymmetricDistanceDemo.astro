@@ -1,0 +1,83 @@
+---
+/**
+ * Drag the query. Estimating its distance to a stored point using only the stored point's
+ * codebook centre (asymmetric) tracks the true distance closely; snapping the query too
+ * (symmetric) is worse. (Lesson 4.1.)
+ */
+const W = 360, H = 230, top = 14, bot = 180, padX = 26;
+---
+
+<div class="mt-demo mt-asym-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-top={top} data-bot={bot} data-padx={padX}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Drag the query; keep it exact, only the stored point is quantized</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="true distance versus the asymmetric estimate using the stored point's centroid">
+        <g data-grid></g>
+        <line data-true x1="0" y1="0" x2="0" y2="0" stroke="#D8D2CB" stroke-width="2.5" />
+        <line data-asym x1="0" y1="0" x2="0" y2="0" stroke="#C96F5A" stroke-width="2.5" stroke-dasharray="4 3" />
+        <g data-marks></g>
+        <circle data-q r="9" fill="#C96F5A" stroke="#fff" stroke-width="2.5" class="mt-grab" />
+    </svg>
+
+    <p class="text-center font-mono text-sm mt-1">
+        true <span data-true-v class="text-mt-muted font-semibold">--</span>
+        &nbsp;&middot;&nbsp; asymmetric <span data-asym-v class="text-mt-accent font-semibold">--</span> (err <span data-asym-e>--</span>)
+        &nbsp;&middot;&nbsp; both-snapped err <span data-sym-e class="text-mt-rose font-semibold">--</span>
+    </p>
+</div>
+
+<script>
+    import { gsap, draggable } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-asym-demo').forEach((root) => {
+        const W = Number(root.dataset.w), top = Number(root.dataset.top), bot = Number(root.dataset.bot), padX = Number(root.dataset.padx);
+        const svg = root.querySelector<SVGSVGElement>('svg')!;
+        const gridG = root.querySelector<SVGGElement>('[data-grid]')!;
+        const marksG = root.querySelector<SVGGElement>('[data-marks]')!;
+        const trueL = root.querySelector<SVGLineElement>('[data-true]')!;
+        const asymL = root.querySelector<SVGLineElement>('[data-asym]')!;
+        const q = root.querySelector<SVGCircleElement>('[data-q]')!;
+        const trueV = root.querySelector<HTMLElement>('[data-true-v]')!;
+        const asymV = root.querySelector<HTMLElement>('[data-asym-v]')!;
+        const asymE = root.querySelector<HTMLElement>('[data-asym-e]')!;
+        const symE = root.querySelector<HTMLElement>('[data-sym-e]')!;
+
+        const dx = (x: number) => padX + (x / 100) * (W - 2 * padX);
+        const dy = (y: number) => top + (y / 70) * (bot - top);
+        const ix = (px: number) => ((px - padX) / (W - 2 * padX)) * 100;
+        const iy = (py: number) => ((py - top) / (bot - top)) * 70;
+
+        const gxs = [15, 38, 61, 84], gys = [16, 38, 60];
+        const grid: number[][] = [];
+        gxs.forEach((gx) => gys.forEach((gy) => grid.push([gx, gy])));
+        const snap = (p: number[]) => grid.reduce((best, c) =>
+            ((p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2) < ((p[0] - best[0]) ** 2 + (p[1] - best[1]) ** 2) ? c : best, grid[0]);
+
+        const D = [72, 28];
+        const cD = snap(D);
+        let qp = [30, 46];
+        const dist = (a: number[], b: number[]) => Math.hypot(a[0] - b[0], a[1] - b[1]) / 10;
+
+        // static grid dots
+        gridG.innerHTML = grid.map((c) => `<circle cx="${dx(c[0]).toFixed(1)}" cy="${dy(c[1]).toFixed(1)}" r="2.5" fill="#E3DDD6" />`).join('');
+
+        function render() {
+            const cQ = snap(qp);
+            const t = dist(qp, D), a = dist(qp, cD), s = dist(cQ, cD);
+            gsap.set(trueL, { attr: { x1: dx(qp[0]), y1: dy(qp[1]), x2: dx(D[0]), y2: dy(D[1]) } });
+            gsap.set(asymL, { attr: { x1: dx(qp[0]), y1: dy(qp[1]), x2: dx(cD[0]), y2: dy(cD[1]) } });
+            gsap.set(q, { attr: { cx: dx(qp[0]), cy: dy(qp[1]) } });
+            marksG.innerHTML =
+                `<rect x="${(dx(D[0]) - 6).toFixed(1)}" y="${(dy(D[1]) - 6).toFixed(1)}" width="12" height="12" rx="2" fill="#322E45" />` +
+                `<circle cx="${dx(cD[0]).toFixed(1)}" cy="${dy(cD[1]).toFixed(1)}" r="8" fill="none" stroke="#C96F5A" stroke-width="2.5" />` +
+                `<text x="${dx(D[0]).toFixed(1)}" y="${(dy(D[1]) - 12).toFixed(1)}" text-anchor="middle" font-size="9" font-family="monospace" fill="#322E45">stored</text>` +
+                `<text x="${dx(cD[0]).toFixed(1)}" y="${(dy(cD[1]) + 22).toFixed(1)}" text-anchor="middle" font-size="9" font-family="monospace" fill="#C96F5A">its centre</text>`;
+            trueV.textContent = t.toFixed(2);
+            asymV.textContent = a.toFixed(2);
+            asymE.textContent = Math.abs(a - t).toFixed(2);
+            symE.textContent = Math.abs(s - t).toFixed(2);
+        }
+
+        draggable(svg, q, (px, py) => { qp = [Math.max(2, Math.min(98, ix(px))), Math.max(2, Math.min(68, iy(py)))]; render(); });
+        render();
+    });
+</script>

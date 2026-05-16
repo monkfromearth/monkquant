@@ -1,0 +1,70 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import KMeansDemo from '../../components/demos/KMeansDemo.astro';
+---
+
+<LessonLayout title="Grouping points" lessonNumber="2.1" section="k-means">
+
+    <LessonHeader lessonNumber="2.1" title="Grouping points" description="Before product quantization can replace a chunk with a representative, it needs a way to find good representatives. That method is k-means.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="default">9 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Find the natural clumps</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Scatter a pile of points on a table and your eye instantly sees the clumps. k-means is the
+            recipe that lets a computer do the same, and pin one representative point, a <strong>centre</strong>
+            or centroid, in the middle of each clump. Those centres are exactly the representatives the next
+            unit will compress with.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            The recipe alternates two moves until nothing changes. <strong>Assign:</strong> colour each point
+            by its nearest centre. <strong>Update:</strong> slide each centre to the average position of the
+            points that chose it. Repeat. Drag a centre below to feel the assignment redraw, then press Step
+            to watch the two moves run.
+        </p>
+
+        <KMeansDemo />
+
+        <InsightBox>
+            <p class="text-sm"><strong>k-means</strong> repeats two steps: assign every point to its nearest
+            centre, then move each centre to the average of its points. It stops when the centres settle.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Where the centres start matters</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            k-means always settles somewhere, but not always in the best somewhere. Start the centres in a
+            bad spot, say all three bunched in one corner, and they can lock onto a poor split that the
+            updates never escape. The standard fix is a smarter start called <strong>k-means++</strong>: place
+            the first centre at random, then each next centre with a preference for points far from the
+            centres already chosen. Spreading the seeds out avoids most bad endings.
+        </p>
+        <p class="text-mt-muted leading-relaxed">
+            Try it in the demo: drag all three centres into one corner, then press Step a few times and see
+            whether they recover or get stuck.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">k-means finds cluster centres by alternating assign (nearest centre) and update (move to the average).</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">It stops when the centres stop moving, which usually takes only a handful of rounds.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">A good start (k-means++) spreads the seeds out and avoids most poor endings.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/scalar/calibrating" prevLabel="Prev: Calibrating the range"
+        nextHref="/kmeans/codebooks" nextLabel="Next: Codebooks"
+    />
+
+</LessonLayout>

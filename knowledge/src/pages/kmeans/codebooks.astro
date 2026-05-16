@@ -1,0 +1,69 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import CodebookDemo from '../../components/demos/CodebookDemo.astro';
+---
+
+<LessonLayout title="Codebooks: a vocabulary of vectors" lessonNumber="2.2" section="k-means">
+
+    <LessonHeader lessonNumber="2.2" title="Codebooks: a vocabulary of vectors" description="Once you have a set of representative centres, you can store any vector as just the index of its nearest one.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="default">8 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">A dictionary of shapes</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            The centres k-means produces form a <strong>codebook</strong>: a short, numbered list of
+            representative vectors. Think of it as a dictionary. Instead of writing out a whole vector, you
+            find the closest entry in the dictionary and write down its number. To get the vector back, you
+            look the number up. The vector is never stored, only its index.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Drag the coral point below. It always reports the nearest codebook entry, and that single index,
+            here a number from 0 to 5, is all that gets stored. Reconstruction is just the lookup.
+        </p>
+
+        <CodebookDemo />
+
+        <InsightBox>
+            <p class="text-sm">A <strong>codebook</strong> is a numbered list of representative vectors (the
+            k-means centres). A vector is stored as the index of its nearest entry, and reconstructed by
+            looking that index up.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Why 256 entries is the magic number</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            How big should the codebook be? The favourite size is 256, and the reason is the byte again. An
+            index into a 256-entry codebook fits in exactly one byte. More entries mean each vector lands
+            closer to its representative, so less error, but the index needs more bits and the codebook itself
+            costs more to store and search. 256 is the sweet spot the classic methods settled on.
+        </p>
+        <p class="text-mt-muted leading-relaxed">
+            There is still a problem hiding here. A real embedding has hundreds of dimensions, and to cover
+            that space well with a single codebook you would need an astronomically large dictionary. The next
+            unit is the elegant trick that dodges it.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">A codebook is a numbered list of representative vectors; a vector is stored as its nearest entry's index.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">256 entries is the favourite size because the index fits in one byte.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">One codebook cannot cover a high-dimensional vector well, which is the problem product quantization solves.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/kmeans/grouping-points" prevLabel="Prev: Grouping points"
+        nextHref="/pq/splitting-into-chunks" nextLabel="Next: Splitting a vector into chunks"
+    />
+
+</LessonLayout>

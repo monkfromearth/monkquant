@@ -1,0 +1,71 @@
+---
+/**
+ * Drag the angle handle to rotate an elongated cloud. The error is lopsided when one axis
+ * carries all the spread; a rotation evens it across both axes, which is what TurboQuant's
+ * random rotation does in high dimensions. (Lesson 5.1.)
+ */
+const W = 360, H = 250, cx = 180, cy = 110, ring = 92;
+---
+
+<div class="mt-demo mt-rotate-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-cx={cx} data-cy={cy} data-ring={ring}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Drag the handle to rotate; even out the error across axes</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="rotating an elongated cloud balances the quantization error across the two axes">
+        <circle cx={cx} cy={cy} r={ring} fill="none" stroke="#F0EAE4" stroke-width="1.5" />
+        <line x1={cx - 110} y1={cy} x2={cx + 110} y2={cy} stroke="#F0EAE4" stroke-width="1" />
+        <line x1={cx} y1={cy - 110} x2={cx} y2={cy + 110} stroke="#F0EAE4" stroke-width="1" />
+        <g data-cloud></g>
+        <circle data-handle cx={cx + ring} cy={cy} r="9" fill="#fff" stroke="#C96F5A" stroke-width="3" class="mt-grab" />
+    </svg>
+
+    <div class="flex justify-center gap-6 mt-1 text-xs font-mono">
+        <span class="text-mt-muted">x error <span data-ex class="inline-block w-20 h-2 align-middle bg-mt-bg rounded-full overflow-hidden border border-mt-border"><span data-exbar class="block h-full bg-mt-accent"></span></span></span>
+        <span class="text-mt-muted">y error <span data-ey class="inline-block w-20 h-2 align-middle bg-mt-bg rounded-full overflow-hidden border border-mt-border"><span data-eybar class="block h-full bg-mt-lav"></span></span></span>
+    </div>
+    <p class="text-center font-mono text-sm mt-2">angle <span data-ang class="text-mt-accent font-semibold">0&deg;</span> &nbsp;&middot;&nbsp; imbalance <span data-imb class="text-mt-rose font-semibold">high</span></p>
+</div>
+
+<script>
+    import { gsap, draggable } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-rotate-demo').forEach((root) => {
+        const cx = Number(root.dataset.cx), cy = Number(root.dataset.cy), ring = Number(root.dataset.ring);
+        const svg = root.querySelector<SVGSVGElement>('svg')!;
+        const cloudG = root.querySelector<SVGGElement>('[data-cloud]')!;
+        const handle = root.querySelector<SVGCircleElement>('[data-handle]')!;
+        const exBar = root.querySelector<HTMLElement>('[data-exbar]')!;
+        const eyBar = root.querySelector<HTMLElement>('[data-eybar]')!;
+        const angEl = root.querySelector<HTMLElement>('[data-ang]')!;
+        const imbEl = root.querySelector<HTMLElement>('[data-imb]')!;
+
+        // elongated cloud along the local x-axis (big x spread, small y spread)
+        const base = Array.from({ length: 15 }, (_, i) => {
+            const t = (i / 14) * 2 - 1;
+            return [t * 78, (((i * 5) % 7) - 3) * 3.2];
+        });
+
+        let ang = 0; // radians
+        function render() {
+            const c = Math.cos(ang), s = Math.sin(ang);
+            const rot = base.map(([x, y]) => [x * c - y * s, x * s + y * c]);
+            cloudG.innerHTML = rot.map(([x, y]) =>
+                `<circle cx="${(cx + x).toFixed(1)}" cy="${(cy + y).toFixed(1)}" r="4.5" fill="#7E7FBC" opacity="0.8" />`).join('');
+            const std = (arr: number[]) => { const m = arr.reduce((a, b) => a + b, 0) / arr.length; return Math.sqrt(arr.reduce((a, b) => a + (b - m) ** 2, 0) / arr.length); };
+            const sx = std(rot.map((p) => p[0])), sy = std(rot.map((p) => p[1]));
+            const mx = Math.max(sx, sy) || 1;
+            exBar.style.width = `${(sx / 56) * 100}%`;
+            eyBar.style.width = `${(sy / 56) * 100}%`;
+            const imbalance = Math.abs(sx - sy) / mx;
+            angEl.textContent = `${Math.round(((ang * 180 / Math.PI) % 360 + 360) % 360)}°`;
+            imbEl.textContent = imbalance < 0.18 ? 'low' : imbalance < 0.5 ? 'medium' : 'high';
+            imbEl.style.color = imbalance < 0.18 ? '#4F9D7B' : imbalance < 0.5 ? '#C2873B' : '#B0708F';
+        }
+        function setFromXY(x: number, y: number) {
+            ang = Math.atan2(y - cy, x - cx);
+            gsap.set(handle, { attr: { cx: cx + Math.cos(ang) * ring, cy: cy + Math.sin(ang) * ring } });
+            render();
+        }
+        draggable(svg, handle, setFromXY);
+        render();
+    });
+</script>

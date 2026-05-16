@@ -1,0 +1,71 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import RaBitQBoundDemo from '../../components/demos/RaBitQBoundDemo.astro';
+---
+
+<LessonLayout title="RaBitQ and the error bound" lessonNumber="5.2" section="The frontier">
+
+    <LessonHeader lessonNumber="5.2" title="RaBitQ and the error bound" description="RaBitQ pushes quantization to a single bit per dimension, and unlike older methods it comes with a proof of how accurate the result will be.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="links">research</TagBadge>
+        <TagBadge variant="default">9 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">One bit, with a guarantee</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            <strong>RaBitQ</strong> (Gao and Long at NTU Singapore, arXiv 2405.12497) rotates the vector, just
+            like TurboQuant, then keeps only the <em>sign</em> of each coordinate: a single bit. One bit per
+            dimension sounds far too crude to search with, and on its own it is. The breakthrough is what the
+            rotation buys: it lets you prove a bound on how wrong the similarity estimate can be, and that
+            bound tightens as the number of dimensions grows.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            This is why a single bit works for real embeddings, which have hundreds of dimensions. Drag the
+            dimension count below. In low dimensions the 1-bit estimate scatters all over; as dimensions grow,
+            it concentrates tightly around the true value. The error shrinks roughly like one over the square
+            root of the dimension.
+        </p>
+
+        <RaBitQBoundDemo />
+
+        <InsightBox>
+            <p class="text-sm"><strong>RaBitQ</strong> quantizes each rotated coordinate to one bit and comes
+            with a proven error bound that tightens with dimension. Older methods like product quantization
+            had no such guarantee, only "try it and see."</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Why a proof matters here</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            For more than a decade, product quantization was the default with no theory behind it: you tuned
+            the number of chunks until recall looked acceptable. RaBitQ changed the conversation by hitting,
+            in the limit, the best error any quantizer could achieve for high-dimensional vectors, a limit
+            from a 2017 result by Alon and Klartag. <strong>Extended RaBitQ</strong> (2025) generalizes the
+            method from one bit to several bits per dimension, trading more memory for more accuracy along the
+            same principled curve. It already ships inside production databases such as Milvus and
+            Elasticsearch.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">RaBitQ rotates, then keeps one bit (the sign) per dimension, with a proven error bound.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">The estimate concentrates as dimension grows, which is why one bit suffices for real embeddings.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">Extended RaBitQ generalizes to several bits per dimension and ships in production vector databases.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/frontier/rotate-then-round" prevLabel="Prev: Rotate, then round"
+        nextHref="/frontier/the-novelty-debate" nextLabel="Next: The novelty debate"
+    />
+
+</LessonLayout>

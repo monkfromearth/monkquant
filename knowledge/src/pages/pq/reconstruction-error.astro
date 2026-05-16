@@ -1,0 +1,70 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import ExerciseBox from '../../components/ExerciseBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import ReconstructionDemo from '../../components/demos/ReconstructionDemo.astro';
+---
+
+<LessonLayout title="Reconstruction error" lessonNumber="3.3" section="Product quantization">
+
+    <LessonHeader lessonNumber="3.3" title="Reconstruction error" description="Decode a PQ code by stitching its chunk representatives back together. How far the result sits from the original is the error you traded for the space.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="default">8 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Stitching the representatives back</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            To decode a PQ code, look up each chunk's index in its codebook and paste the representatives back
+            together in order. The result is a vector shaped like the original but built from a small set of
+            stock pieces, so it never matches exactly. The distance between the two is the
+            <strong>reconstruction error</strong>, and it is the price you paid in accuracy for the small code.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            The demo uses the simplest possible representative, a chunk's average, so you can watch the idea
+            cleanly. The grey line is the original; the coral line is the reconstruction. Add chunks and the
+            coral line hugs the grey one, while the error falls and the byte count rises.
+        </p>
+
+        <ReconstructionDemo />
+
+        <InsightBox>
+            <p class="text-sm"><strong>Reconstruction error</strong> is how far the decoded vector sits from
+            the original. More chunks lower it; fewer chunks compress harder and raise it.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Debug the codebook, not the search</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Reconstruction error is a gift when you are building this: it tests the codebooks completely on
+            their own, before any search is involved. If the error does not shrink as you add chunks, or as
+            you give the codebooks more entries, something is wrong with the quantizer itself. Get this curve
+            healthy first, then move on to using the codes for search.
+        </p>
+        <ExerciseBox title="Predict it">
+            <p class="text-sm text-mt-muted">In the demo, M = 1 means one chunk covering all 12 numbers with a
+            single representative. Before you click it, what should the reconstruction look like, and why is
+            its error the worst of all the settings?</p>
+        </ExerciseBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">Decoding pastes each chunk's representative back together; the gap from the original is the reconstruction error.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">More chunks (or richer codebooks) lower the error, at the cost of more stored bytes.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">Reconstruction error tests the codebook alone, so debug it before bringing search into the picture.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/pq/encoding-to-bytes" prevLabel="Prev: Encoding to bytes"
+        nextHref="/search/asymmetric-distance" nextLabel="Next: Asymmetric distance"
+    />
+
+</LessonLayout>

@@ -1,0 +1,71 @@
+---
+/**
+ * Drag the dimension count. A 1-bit-per-dimension estimate of the similarity scatters wildly
+ * in low dimensions and concentrates tightly around the true value as dimensions grow: the
+ * error bound shrinking like one over root D. (Lesson 5.2.)
+ */
+const W = 360, H = 160, pad = 28, lineY = 64;
+const trueVal = 0.62;
+const sx = (v: number) => pad + v * (W - 2 * pad);
+---
+
+<div class="mt-demo mt-rabitq-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-pad={pad} data-liney={lineY} data-true={trueVal}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Drag dimensions; watch the 1-bit estimate concentrate</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="a one-bit similarity estimate concentrating around the true value as dimension grows">
+        <rect data-band x="0" y={lineY - 16} width="0" height="32" rx="4" fill="#FBEEE9" />
+        <line x1={pad} y1={lineY} x2={W - pad} y2={lineY} stroke="#EFE8E2" stroke-width="4" stroke-linecap="round" />
+        <g data-samples></g>
+        <line x1={sx(trueVal)} y1={lineY - 22} x2={sx(trueVal)} y2={lineY + 22} stroke="#322E45" stroke-width="3" stroke-linecap="round" />
+        <text x={sx(trueVal)} y={lineY - 28} text-anchor="middle" font-size="10" font-family="monospace" fill="#322E45">true</text>
+        <!-- dimension track + knob -->
+        <line x1={pad} y1="128" x2={W - pad} y2="128" stroke="#EFE8E2" stroke-width="6" stroke-linecap="round" />
+        <circle data-knob cx={pad} cy="128" r="10" fill="#fff" stroke="#7E7FBC" stroke-width="3" class="mt-grab" />
+    </svg>
+
+    <p class="text-center font-mono text-sm mt-1">
+        <span data-dims class="text-mt-lav font-semibold">8</span> dimensions
+        &nbsp;&middot;&nbsp; error bound &plusmn;<span data-bound class="text-mt-accent font-semibold">0.18</span>
+    </p>
+</div>
+
+<script>
+    import { gsap, draggable, clamp } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-rabitq-demo').forEach((root) => {
+        const W = Number(root.dataset.w), pad = Number(root.dataset.pad), lineY = Number(root.dataset.liney), trueVal = Number(root.dataset.true);
+        const svg = root.querySelector<SVGSVGElement>('svg')!;
+        const band = root.querySelector<SVGRectElement>('[data-band]')!;
+        const samplesG = root.querySelector<SVGGElement>('[data-samples]')!;
+        const knob = root.querySelector<SVGCircleElement>('[data-knob]')!;
+        const dimsEl = root.querySelector<HTMLElement>('[data-dims]')!;
+        const boundEl = root.querySelector<HTMLElement>('[data-bound]')!;
+        const sx = (v: number) => pad + clamp(v, 0, 1) * (W - 2 * pad);
+        const kx = (frac: number) => pad + frac * (W - 2 * pad);
+        const invK = (px: number) => clamp((px - pad) / (W - 2 * pad), 0, 1);
+        // fixed pseudo-spread so samples are deterministic
+        const noise = [-0.95, 0.8, -0.4, 0.55, -0.7, 0.25, 0.95, -0.2, 0.45, -0.6, 0.15, -0.85, 0.65, -0.1];
+
+        let logD = 3; // log2(dims), dims = 2^logD, range 1..9
+        function render() {
+            const D = Math.round(2 ** logD);
+            const bound = 0.5 / Math.sqrt(D);
+            band.setAttribute('x', sx(trueVal - bound).toFixed(1));
+            band.setAttribute('width', (sx(trueVal + bound) - sx(trueVal - bound)).toFixed(1));
+            samplesG.innerHTML = noise.map((nf, i) => {
+                const v = clamp(trueVal + nf * bound, 0, 1);
+                const dyOff = ((i % 3) - 1) * 6;
+                return `<circle cx="${sx(v).toFixed(1)}" cy="${(lineY + dyOff).toFixed(1)}" r="3.5" fill="#C96F5A" opacity="0.7" />`;
+            }).join('');
+            dimsEl.textContent = String(D);
+            boundEl.textContent = bound.toFixed(2);
+        }
+        function setLogD(frac: number) {
+            logD = clamp(1 + frac * 8, 1, 9);
+            gsap.set(knob, { attr: { cx: kx((logD - 1) / 8) } });
+            render();
+        }
+        draggable(svg, knob, (x) => setLogD(invK(x)));
+        setLogD((3 - 1) / 8);
+    });
+</script>

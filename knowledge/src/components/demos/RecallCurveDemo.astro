@@ -1,0 +1,80 @@
+---
+/**
+ * The artifact in miniature. Drag the operating point along the PQ curve and read recall
+ * against compression ratio. int8 sits as a single point. Shapes are illustrative. (Lesson 4.2.)
+ */
+const W = 360, H = 230, L = 40, R = 16, T = 16, B = 40;
+---
+
+<div class="mt-demo mt-curve-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-l={L} data-r={R} data-t={T} data-b={B} data-h={H}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Drag along the curve: more compression, less recall</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="recall versus compression ratio, with a draggable operating point on the product quantization curve">
+        <line x1={L} y1={T} x2={L} y2={H - B} stroke="#E8E4DF" stroke-width="1.5" />
+        <line x1={L} y1={H - B} x2={W - R} y2={H - B} stroke="#E8E4DF" stroke-width="1.5" />
+        <text x="6" y={T + 6} font-size="9" font-family="monospace" fill="#6B6560">recall</text>
+        <text x={W - R} y={H - B + 28} text-anchor="end" font-size="9" font-family="monospace" fill="#6B6560">compression &rarr;</text>
+        <path data-curve fill="none" stroke="#C96F5A" stroke-width="2.5" />
+        <circle data-int8 r="6" fill="#7E7FBC" stroke="#fff" stroke-width="2" />
+        <text data-int8t font-size="9" font-family="monospace" fill="#7E7FBC">int8</text>
+        <line data-guide x1="0" y1="0" x2="0" y2="0" stroke="#E3DDD6" stroke-width="1" stroke-dasharray="3 3" />
+        <circle data-op r="9" fill="#fff" stroke="#C96F5A" stroke-width="3" class="mt-grab" />
+    </svg>
+
+    <p class="text-center font-mono text-sm mt-1">
+        ratio <span data-ratio class="text-mt-accent font-semibold">16&times;</span>
+        &nbsp;&middot;&nbsp; recall@10 <span data-recall class="text-mt-lav font-semibold">0.93</span>
+    </p>
+</div>
+
+<script>
+    import { gsap, draggable, clamp } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-curve-demo').forEach((root) => {
+        const W = Number(root.dataset.w), L = Number(root.dataset.l), R = Number(root.dataset.r);
+        const T = Number(root.dataset.t), B = Number(root.dataset.b), H = Number(root.dataset.h);
+        const svg = root.querySelector<SVGSVGElement>('svg')!;
+        const curve = root.querySelector<SVGPathElement>('[data-curve]')!;
+        const op = root.querySelector<SVGCircleElement>('[data-op]')!;
+        const guide = root.querySelector<SVGLineElement>('[data-guide]')!;
+        const int8 = root.querySelector<SVGCircleElement>('[data-int8]')!;
+        const int8t = root.querySelector<SVGTextElement>('[data-int8t]')!;
+        const ratioEl = root.querySelector<HTMLElement>('[data-ratio]')!;
+        const recallEl = root.querySelector<HTMLElement>('[data-recall]')!;
+
+        // anchors: log2(ratio) -> recall (illustrative PQ shape)
+        const anchors: [number, number][] = [[2, 0.99], [3, 0.97], [4, 0.93], [5, 0.85], [6, 0.72]];
+        const recallAt = (l: number) => {
+            l = clamp(l, 2, 6);
+            for (let i = 0; i < anchors.length - 1; i++) {
+                const [l0, r0] = anchors[i], [l1, r1] = anchors[i + 1];
+                if (l <= l1) return r0 + (r1 - r0) * (l - l0) / (l1 - l0);
+            }
+            return anchors[anchors.length - 1][1];
+        };
+        const rmin = 0.6, rmax = 1.0;
+        const px = (l: number) => L + ((l - 2) / 4) * (W - R - L);
+        const py = (r: number) => (H - B) - ((r - rmin) / (rmax - rmin)) * (H - B - T);
+        const invL = (x: number) => 2 + ((x - L) / (W - R - L)) * 4;
+
+        // draw curve
+        let d = '';
+        for (let l = 2; l <= 6.0001; l += 0.1) { d += (l === 2 ? 'M' : 'L') + px(l).toFixed(1) + ',' + py(recallAt(l)).toFixed(1); }
+        curve.setAttribute('d', d);
+        // int8 point (4x = log2 2, recall ~0.98)
+        gsap.set(int8, { attr: { cx: px(2), cy: py(0.98) } });
+        int8t.setAttribute('x', (px(2) + 9).toFixed(1));
+        int8t.setAttribute('y', (py(0.98) - 6).toFixed(1));
+
+        let l = 4;
+        function render() {
+            const r = recallAt(l);
+            gsap.set(op, { attr: { cx: px(l), cy: py(r) } });
+            gsap.set(guide, { attr: { x1: L, y1: py(r), x2: px(l), y2: py(r) } });
+            ratioEl.textContent = `${Math.round(2 ** l)}×`;
+            recallEl.textContent = r.toFixed(2);
+        }
+        draggable(svg, op, (x) => { l = clamp(invL(x), 2, 6); render(); });
+        render();
+    });
+</script>

@@ -1,0 +1,88 @@
+---
+/**
+ * Drag the [min, max] window over the data. Too narrow and outlier points clip (red);
+ * too wide and the levels spread thin, so the error inside grows. (Lesson 1.2.)
+ */
+const W = 360, H = 150, pad = 28, axMin = -4, axMax = 8;
+const sx = (v: number) => pad + ((v - axMin) / (axMax - axMin)) * (W - 2 * pad);
+---
+
+<div class="mt-demo mt-calib-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-pad={pad} data-axmin={axMin} data-axmax={axMax}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Drag the window edges to calibrate the range</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="a calibration window over data points; points outside the window clip">
+        <rect data-window x="0" y="40" width="100" height="44" fill="#FBEEE9" stroke="none" rx="6" />
+        <line x1={pad} y1="62" x2={W - pad} y2="62" stroke="#EFE8E2" stroke-width="4" stroke-linecap="round" />
+        <g data-points></g>
+        <line data-minh x1={sx(-2)} y1="36" x2={sx(-2)} y2="88" stroke="#C96F5A" stroke-width="4" stroke-linecap="round" class="mt-grab" />
+        <line data-maxh x1={sx(6)} y1="36" x2={sx(6)} y2="88" stroke="#C96F5A" stroke-width="4" stroke-linecap="round" class="mt-grab" />
+        <circle data-mink cx={sx(-2)} cy="36" r="8" fill="#fff" stroke="#C96F5A" stroke-width="3" class="mt-grab" />
+        <circle data-maxk cx={sx(6)} cy="36" r="8" fill="#fff" stroke="#C96F5A" stroke-width="3" class="mt-grab" />
+    </svg>
+
+    <p class="text-center font-mono text-sm mt-1">
+        window [<span data-min class="text-mt-accent font-semibold">-2.0</span>, <span data-max class="text-mt-accent font-semibold">6.0</span>]
+        &nbsp;&middot;&nbsp; clipped <span data-clip class="text-mt-rose font-semibold">0</span>
+        &nbsp;&middot;&nbsp; avg error <span data-err class="text-mt-lav font-semibold">0.004</span>
+    </p>
+</div>
+
+<script>
+    import { gsap, draggable, clamp, REDUCED } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-calib-demo').forEach((root) => {
+        const W = Number(root.dataset.w), pad = Number(root.dataset.pad);
+        const axMin = Number(root.dataset.axmin), axMax = Number(root.dataset.axmax);
+        const svg = root.querySelector<SVGSVGElement>('svg')!;
+        const win = root.querySelector<SVGRectElement>('[data-window]')!;
+        const minH = root.querySelector<SVGLineElement>('[data-minh]')!;
+        const maxH = root.querySelector<SVGLineElement>('[data-maxh]')!;
+        const minK = root.querySelector<SVGCircleElement>('[data-mink]')!;
+        const maxK = root.querySelector<SVGCircleElement>('[data-maxk]')!;
+        const pointsG = root.querySelector<SVGGElement>('[data-points]')!;
+        const minEl = root.querySelector<HTMLElement>('[data-min]')!;
+        const maxEl = root.querySelector<HTMLElement>('[data-max]')!;
+        const clipEl = root.querySelector<HTMLElement>('[data-clip]')!;
+        const errEl = root.querySelector<HTMLElement>('[data-err]')!;
+
+        const sx = (v: number) => pad + ((v - axMin) / (axMax - axMin)) * (W - 2 * pad);
+        const invX = (px: number) => clamp(axMin + (px - pad) / (W - 2 * pad) * (axMax - axMin), axMin, axMax);
+        const data = [-1.6, -0.4, 0.3, 1.1, 1.8, 2.2, 2.9, 3.4, 4.1, 4.8, 5.3];
+
+        let lo = -2, hi = 6;
+        function render() {
+            const span = Math.max(hi - lo, 0.2);
+            const step = span / 255;
+            let clipped = 0, errSum = 0;
+            let html = '';
+            data.forEach((v) => {
+                const out = v < lo || v > hi;
+                if (out) clipped++;
+                const c = clamp(v, lo, hi);
+                const code = Math.round((c - lo) / step);
+                const dec = lo + code * step;
+                errSum += Math.abs(v - dec);
+                const fill = out ? '#C96F5A' : '#4F9D7B';
+                html += `<circle cx="${sx(v).toFixed(1)}" cy="62" r="5" fill="${fill}" />`;
+            });
+            pointsG.innerHTML = html;
+            win.setAttribute('x', sx(lo).toFixed(1));
+            win.setAttribute('width', (sx(hi) - sx(lo)).toFixed(1));
+            const place = () => {
+                gsap.set(minH, { attr: { x1: sx(lo), x2: sx(lo) } });
+                gsap.set(maxH, { attr: { x1: sx(hi), x2: sx(hi) } });
+                gsap.set(minK, { attr: { cx: sx(lo) } });
+                gsap.set(maxK, { attr: { cx: sx(hi) } });
+            };
+            place();
+            minEl.textContent = lo.toFixed(1);
+            maxEl.textContent = hi.toFixed(1);
+            clipEl.textContent = String(clipped);
+            errEl.textContent = (errSum / data.length).toFixed(3);
+        }
+
+        draggable(svg, minK, (x) => { lo = Math.min(Math.round(invX(x) * 2) / 2, hi - 0.5); render(); });
+        draggable(svg, maxK, (x) => { hi = Math.max(Math.round(invX(x) * 2) / 2, lo + 0.5); render(); });
+        render();
+    });
+</script>

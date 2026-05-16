@@ -1,0 +1,78 @@
+---
+/**
+ * The reconstruction (each chunk replaced by its representative) hugs the original better
+ * as M rises, so the error falls, but the stored size grows. (Lesson 3.3.)
+ */
+const W = 360, H = 170, padX = 22, top = 16, bot = 110;
+const Ms = [1, 2, 3, 4, 6, 12];
+---
+
+<div class="mt-demo mt-recon-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-padx={padX} data-top={top} data-bot={bot}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">More chunks, closer reconstruction, smaller error</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="original vector versus its chunk-based reconstruction as the number of chunks changes">
+        <path data-orig fill="none" stroke="#D8D2CB" stroke-width="2.5" />
+        <path data-recon fill="none" stroke="#C96F5A" stroke-width="3" stroke-linejoin="round" />
+        <g data-dividers></g>
+    </svg>
+
+    <div class="flex items-center justify-center gap-2 mt-1 mb-3 flex-wrap">
+        {Ms.map((m) => (
+            <button data-m={m} class="mt-rbtn text-xs font-mono px-2.5 py-1 rounded-lg border border-mt-border hover:border-mt-accent transition-colors">M={m}</button>
+        ))}
+    </div>
+    <p class="text-center font-mono text-sm">
+        <span data-m-out class="text-mt-accent font-semibold">3</span> chunks
+        &nbsp;&middot;&nbsp; error <span data-err class="text-mt-lav font-semibold">0.08</span>
+        &nbsp;&middot;&nbsp; <span data-bytes class="text-mt-muted">3 bytes</span>
+    </p>
+</div>
+
+<script>
+    document.querySelectorAll<HTMLElement>('.mt-recon-demo').forEach((root) => {
+        const W = Number(root.dataset.w), padX = Number(root.dataset.padx), top = Number(root.dataset.top), bot = Number(root.dataset.bot);
+        const origP = root.querySelector<SVGPathElement>('[data-orig]')!;
+        const reconP = root.querySelector<SVGPathElement>('[data-recon]')!;
+        const divG = root.querySelector<SVGGElement>('[data-dividers]')!;
+        const mOut = root.querySelector<HTMLElement>('[data-m-out]')!;
+        const errEl = root.querySelector<HTMLElement>('[data-err]')!;
+        const bytesEl = root.querySelector<HTMLElement>('[data-bytes]')!;
+        const btns = Array.from(root.querySelectorAll<HTMLButtonElement>('.mt-rbtn'));
+        const vals = [0.30, 0.55, 0.78, 0.62, 0.40, 0.52, 0.85, 0.70, 0.45, 0.33, 0.58, 0.72];
+        const n = vals.length;
+
+        const px = (i: number) => padX + (i / (n - 1)) * (W - 2 * padX);
+        const py = (v: number) => bot - v * (bot - top);
+
+        let M = 3;
+        function render() {
+            origP.setAttribute('d', vals.map((v, i) => `${i ? 'L' : 'M'}${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(' '));
+            const size = n / M;
+            // chunk means -> piecewise-constant reconstruction
+            const recon = vals.map((_, i) => {
+                const c = Math.floor(i / size);
+                const s = Math.round(c * size), e = Math.round((c + 1) * size);
+                const slice = vals.slice(s, e);
+                return slice.reduce((a, b) => a + b, 0) / slice.length;
+            });
+            let d = '';
+            recon.forEach((v, i) => { d += i ? ` L${px(i).toFixed(1)},${py(v).toFixed(1)}` : `M${px(i).toFixed(1)},${py(v).toFixed(1)}`; });
+            reconP.setAttribute('d', d);
+            let div = '';
+            for (let c = 1; c < M; c++) {
+                const x = px(c * size - 0.5);
+                div += `<line x1="${x.toFixed(1)}" y1="${top}" x2="${x.toFixed(1)}" y2="${bot}" stroke="#F0EAE4" stroke-width="1.5" />`;
+            }
+            divG.innerHTML = div;
+            const err = vals.reduce((a, v, i) => a + Math.abs(v - recon[i]), 0) / n;
+            mOut.textContent = String(M);
+            errEl.textContent = err.toFixed(3);
+            bytesEl.textContent = `${M} bytes`;
+            btns.forEach((b) => b.classList.toggle('mt-rbtn-on', Number(b.dataset.m) === M));
+        }
+        btns.forEach((b) => b.addEventListener('click', () => { M = Number(b.dataset.m); render(); }));
+        render();
+    });
+</script>
+
+<style>.mt-rbtn-on { border-color: #C96F5A; background: #FBEEE9; color: #C96F5A; }</style>

@@ -1,0 +1,68 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import MethodCompareDemo from '../../components/demos/MethodCompareDemo.astro';
+---
+
+<LessonLayout title="The novelty debate" lessonNumber="5.3" section="The frontier">
+
+    <LessonHeader lessonNumber="5.3" title="The novelty debate" description="TurboQuant and RaBitQ share a striking amount of machinery. Whether one is genuinely new or a restatement of the other is an open, public argument, and this project takes a side with a benchmark.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="links">research</TagBadge>
+        <TagBadge variant="default">8 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Two methods, suspiciously alike</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Lay the two methods side by side and the resemblance is hard to miss. Both rotate the vector
+            first. Both then quantize coordinates very coarsely, RaBitQ to one bit, TurboQuant with a
+            per-coordinate quantizer plus a 1-bit correction. Both lean on the same high-dimensional
+            concentration to make a crude code accurate. When RaBitQ came first and TurboQuant arrived with a
+            louder splash, its first author, Jianyang Gao, publicly questioned whether TurboQuant is a real
+            advance or largely a restatement of his earlier work. As of now the question is unresolved.
+        </p>
+
+        <MethodCompareDemo />
+
+        <InsightBox>
+            <p class="text-sm">The curves above are <strong>illustrative</strong>, drawn to show how a
+            comparison reads, not to declare a winner. The real shapes come only from running both methods on
+            the same data, the same way.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">A benchmark beats an argument</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Arguments about novelty are settled by claims; questions about which method is better for search
+            are settled by measurement. That is exactly where this project's v2 goes: implement TurboQuant,
+            implement Extended RaBitQ, run both against the v1 product-quantization baseline on the same
+            datasets, the same recall and compression axes, and read the curves. Where one wins, say so and
+            show it. Where they cross, say that too. A reproducible plot is worth more than a strong opinion.
+        </p>
+        <p class="text-mt-muted leading-relaxed">
+            That is also the honest end of this course. You have built the baseline and the ruler by hand;
+            the frontier is now a fair fight you are equipped to referee.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">TurboQuant and RaBitQ share rotation, very coarse quantization, and high-dimensional concentration.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">Whether TurboQuant is genuinely novel is a live, public debate, not a settled fact.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">The resolution this project trusts is a reproducible head-to-head benchmark, not an argument.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/frontier/rabitq-bound" prevLabel="Prev: RaBitQ and the error bound"
+        nextHref="/learn" nextLabel="Finish: back to the course map"
+    />
+
+</LessonLayout>

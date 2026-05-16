@@ -1,0 +1,67 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import RerankDemo from '../../components/demos/RerankDemo.astro';
+---
+
+<LessonLayout title="Re-ranking the candidates" lessonNumber="4.3" section="Searching squashed data">
+
+    <LessonHeader lessonNumber="4.3" title="Re-ranking the candidates" description="The compressed search gets you a rough shortlist fast. A quick exact re-score of just that shortlist buys most of the lost recall back.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="default">8 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Rough first, exact second</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Compressed distances are estimates, so the top few they return are sometimes slightly wrong. The
+            standard cure is a two-pass search. First pass: use the fast compressed estimates to pull a
+            shortlist of, say, the top 50 candidates. Second pass: re-score just those 50 with exact
+            distances, using the full vectors, and keep the real top few. The exact pass is expensive per
+            comparison, but you only run it on a tiny shortlist, so it is cheap overall.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Below, with re-ranking off, the rough shortlist misses a true neighbour or two (shown in coral).
+            Turn re-ranking on and grow the shortlist N: the exact re-score pulls the true top-4 back in, and
+            recall climbs toward a perfect 1.0.
+        </p>
+
+        <RerankDemo />
+
+        <InsightBox>
+            <p class="text-sm"><strong>Re-ranking</strong> takes a shortlist from the fast compressed search,
+            re-scores it with exact distances, and keeps the true top-k. Most lost recall comes back for very
+            little extra work.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">The catch, and the balance</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Re-ranking needs the full vectors on hand for the second pass, so you keep them somewhere cheaper,
+            on disk or in slower memory, away from the compressed codes that drive the fast first pass. The
+            shortlist size N is the dial: too small and a true neighbour never makes the shortlist to be
+            rescued; too large and the exact pass starts to cost real time. A little re-ranking is one of the
+            best deals in the whole pipeline.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">Re-ranking re-scores a small compressed shortlist with exact distances to recover the true top-k.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">It recovers most of the recall lost to compression for very little extra compute.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">The shortlist size N is the dial: too small misses neighbours, too large costs time.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/search/recall-vs-compression" prevLabel="Prev: Recall vs compression"
+        nextHref="/frontier/rotate-then-round" nextLabel="Next: Rotate, then round"
+    />
+
+</LessonLayout>

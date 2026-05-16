@@ -1,0 +1,81 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import RecallCloudDemo from '../../components/demos/RecallCloudDemo.astro';
+---
+
+<LessonLayout title="The ruler: recall and compression" lessonNumber="0.3" section="The trade-off">
+
+    <LessonHeader lessonNumber="0.3" title="The ruler: recall and compression" description="To compare quantizers we need two numbers: how much smaller the data got, and whether search still finds the right answers.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="default">9 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Measuring the size: compression ratio</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            The easy axis first. The <strong>compression ratio</strong> is just the original size divided by
+            the compressed size. A vector of 128 numbers stored as 32-bit floats takes 512 bytes. Squash each
+            number to a single byte and it takes 128, a ratio of 4 times. Squash the whole vector to 8 bytes,
+            as product quantization can, and the ratio is 64 times. Bigger is better, and it is exact.
+        </p>
+        <div class="bg-white border border-mt-border rounded-xl p-5 font-mono text-sm leading-relaxed">
+            512 bytes &divide; 128 bytes = 4&times; &nbsp;&middot;&nbsp; 512 &divide; 8 = 64&times;
+        </div>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Measuring the damage: recall@k</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Accuracy is subtler. For search, what matters is not whether a stored number is slightly off, but
+            whether you still find the right neighbours. So we measure <strong>recall@k</strong>: of the true
+            k nearest points to a query, how many does the search still return after compression. Perfect
+            recall is 1.0; if compression makes you miss one of the true four, recall@4 drops to 0.75.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            The dark dot below is a query. Four points are its true nearest neighbours. Drag the coarseness
+            knob to compress harder: points blur onto a grid, the search starts returning the wrong ones, and
+            a true neighbour turns red the moment it gets dropped.
+        </p>
+
+        <RecallCloudDemo />
+
+        <InsightBox>
+            <p class="text-sm"><strong>recall@k</strong> is the fraction of the true k nearest neighbours that
+            survive compression. It is the accuracy axis for everything in this course.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">No search engine required</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            A quiet but important point: you can measure recall without building any fast search index at
+            all. Compare every compressed point against the query by brute force, take the nearest k, and
+            check them against the exact answer. It is slow, but it isolates exactly what we want to grade:
+            the quality of the compression, not the speed of the lookup. Speed is a separate project's job.
+        </p>
+        <p class="text-mt-muted leading-relaxed">
+            With both axes pinned down, recall on one and compression ratio on the other, we can draw the
+            curve that every method in this course competes on. Time to build the first method.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">Compression ratio is original size over compressed size: exact, and bigger is better.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">recall@k is the fraction of the true k nearest neighbours still returned after compression.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">Recall can be measured with brute-force search, so it grades the codec alone, not the index.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/foundations/memory-vs-accuracy" prevLabel="Prev: Memory vs accuracy"
+        nextHref="/scalar/range-into-levels" nextLabel="Next: A range into 256 levels"
+    />
+
+</LessonLayout>

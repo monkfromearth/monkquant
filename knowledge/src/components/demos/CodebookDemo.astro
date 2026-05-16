@@ -1,0 +1,73 @@
+---
+/**
+ * Drag the point. It snaps to the nearest entry in a 6-vector codebook, and gets stored as
+ * just that entry's index, one small number instead of the whole vector. (Lesson 2.2.)
+ */
+const W = 360, H = 230, top = 16, bot = 200, padX = 26;
+---
+
+<div class="mt-demo mt-codebook-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-top={top} data-bot={bot} data-padx={padX}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Drag the point; it is stored as the nearest codebook entry</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="a point snapping to the nearest of six codebook vectors and stored as that index">
+        <line data-link x1="0" y1="0" x2="0" y2="0" stroke="#C96F5A" stroke-width="2" stroke-dasharray="3 3" />
+        <g data-book></g>
+        <circle data-q r="9" fill="#C96F5A" stroke="#fff" stroke-width="2.5" class="mt-grab" />
+    </svg>
+
+    <p class="text-center font-mono text-sm mt-1">
+        stored as <span data-idx class="text-mt-accent font-semibold">#2</span>
+        &nbsp;&middot;&nbsp; <span class="text-mt-lav">1 byte</span> instead of the full vector
+    </p>
+    <p class="text-center font-mono text-xs text-mt-muted mt-1">reconstruct = look up entry <span data-idx2>#2</span></p>
+</div>
+
+<script>
+    import { gsap, draggable, REDUCED } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-codebook-demo').forEach((root) => {
+        const W = Number(root.dataset.w), top = Number(root.dataset.top), bot = Number(root.dataset.bot), padX = Number(root.dataset.padx);
+        const svg = root.querySelector<SVGSVGElement>('svg')!;
+        const bookG = root.querySelector<SVGGElement>('[data-book]')!;
+        const link = root.querySelector<SVGLineElement>('[data-link]')!;
+        const q = root.querySelector<SVGCircleElement>('[data-q]')!;
+        const idxEl = root.querySelector<HTMLElement>('[data-idx]')!;
+        const idx2El = root.querySelector<HTMLElement>('[data-idx2]')!;
+        const colors = ['#E9A294', '#C2A4CD', '#A2ABDE', '#88B2EC', '#7E7FBC', '#5E80C9'];
+
+        const dx = (x: number) => padX + (x / 100) * (W - 2 * padX);
+        const dy = (y: number) => top + (y / 100) * (bot - top);
+        const ix = (px: number) => ((px - padX) / (W - 2 * padX)) * 100;
+        const iy = (py: number) => ((py - top) / (bot - top)) * 100;
+
+        const book = [[18, 24], [50, 16], [80, 28], [26, 78], [58, 84], [84, 66]];
+        let qp = [46, 50];
+
+        const nearest = () => {
+            let bi = 0, bd = Infinity;
+            book.forEach((c, i) => { const d = (qp[0] - c[0]) ** 2 + (qp[1] - c[1]) ** 2; if (d < bd) { bd = d; bi = i; } });
+            return bi;
+        };
+
+        function render() {
+            const k = nearest();
+            let html = '';
+            book.forEach((c, i) => {
+                const on = i === k;
+                html += `<circle cx="${dx(c[0]).toFixed(1)}" cy="${dy(c[1]).toFixed(1)}" r="${on ? 13 : 9}" fill="${colors[i]}" ${on ? 'stroke="#322E45" stroke-width="2.5"' : ''} />`;
+                html += `<text x="${dx(c[0]).toFixed(1)}" y="${(dy(c[1]) + 4).toFixed(1)}" text-anchor="middle" font-size="9" font-family="monospace" fill="#fff">${i}</text>`;
+            });
+            bookG.innerHTML = html;
+            gsap.set(link, { attr: { x1: dx(qp[0]), y1: dy(qp[1]), x2: dx(book[k][0]), y2: dy(book[k][1]) } });
+            gsap.set(q, { attr: { cx: dx(qp[0]), cy: dy(qp[1]) } });
+            idxEl.textContent = `#${k}`;
+            idx2El.textContent = `#${k}`;
+        }
+
+        draggable(svg, q, (px, py) => {
+            qp = [Math.max(0, Math.min(100, ix(px))), Math.max(0, Math.min(100, iy(py)))];
+            render();
+        });
+        render();
+    });
+</script>

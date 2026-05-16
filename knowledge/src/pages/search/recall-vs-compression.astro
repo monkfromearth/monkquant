@@ -1,0 +1,66 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import RecallCurveDemo from '../../components/demos/RecallCurveDemo.astro';
+---
+
+<LessonLayout title="Recall vs compression: the curve" lessonNumber="4.2" section="Searching squashed data">
+
+    <LessonHeader lessonNumber="4.2" title="Recall vs compression: the curve" description="Put the two rulers on one plot and you get the curve every quantizer competes on. This is the artifact the whole project builds toward.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="default">8 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">The plot that decides everything</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Compression ratio on one axis, recall on the other. Sweep a method's settings, from gentle to
+            aggressive, and it traces a curve: cheap and accurate on the left, tiny and lossy on the right.
+            This single picture is the deliverable of v1. It answers the only question that matters in
+            practice: at the memory budget I can afford, how good is search still?
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Drag the operating point along the product quantization curve below. Push right for more
+            compression and watch recall give way. The int8 point sits on its own, a fixed 4 times with very
+            high recall. The shapes here are illustrative; the real numbers come from running the benchmark on
+            a real dataset.
+        </p>
+
+        <RecallCurveDemo />
+
+        <InsightBox>
+            <p class="text-sm">The <strong>recall-versus-compression curve</strong> is how methods are
+            compared. A better quantizer is one whose curve sits higher and to the right: more recall at the
+            same compression.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">How to read a winner</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            You rarely care about a single point; you care about the whole curve. Method A beats method B if
+            its curve is above B's across the range you care about. Sometimes curves cross: one method wins at
+            gentle compression, another at aggressive. That is exactly the kind of honest, specific claim this
+            plot lets you make, and the kind the research lessons in the next unit will put to the test.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">The recall-versus-compression curve is v1's deliverable and the basis for every comparison.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">A method wins where its curve sits higher; curves can cross, so the winner can depend on the budget.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">Real numbers come from running the benchmark on a real dataset; demo shapes are only illustrative.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/search/asymmetric-distance" prevLabel="Prev: Asymmetric distance"
+        nextHref="/search/re-ranking" nextLabel="Next: Re-ranking"
+    />
+
+</LessonLayout>

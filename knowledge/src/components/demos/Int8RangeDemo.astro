@@ -1,0 +1,67 @@
+---
+/**
+ * Drag a value across a range. It becomes an integer code 0..255 (one byte), then is
+ * decoded back to a slightly different float. The gap is the int8 quantization error. (Lesson 1.1.)
+ */
+const W = 360, H = 120, pad = 28, vmin = -2, vmax = 6;
+const sx = (v: number) => pad + ((v - vmin) / (vmax - vmin)) * (W - 2 * pad);
+const start = 3;
+---
+
+<div class="mt-demo mt-int8-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-pad={pad} data-vmin={vmin} data-vmax={vmax}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Drag the value, read its byte code</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="a float value mapped to an integer code between 0 and 255">
+        <line x1={pad} y1="58" x2={W - pad} y2="58" stroke="#EFE8E2" stroke-width="6" stroke-linecap="round" />
+        <text x={pad} y="86" text-anchor="middle" class="font-mono" fill="#6B6560" font-size="11">{vmin}</text>
+        <text x={W - pad} y="86" text-anchor="middle" class="font-mono" fill="#6B6560" font-size="11">{vmax}</text>
+        <text x={pad} y="44" text-anchor="middle" class="font-mono" fill="#B0708F" font-size="11">0</text>
+        <text x={W - pad} y="44" text-anchor="middle" class="font-mono" fill="#B0708F" font-size="11">255</text>
+        <!-- decoded marker -->
+        <line data-decoded x1={sx(start)} y1="48" x2={sx(start)} y2="68" stroke="#7E7FBC" stroke-width="3" stroke-linecap="round" />
+        <circle data-dot cx={sx(start)} cy="58" r="11" fill="#fff" stroke="#C96F5A" stroke-width="3" class="mt-grab" />
+    </svg>
+
+    <p class="text-center font-mono text-sm mt-1">
+        value <span data-val class="text-mt-accent font-semibold">3.00</span>
+        &nbsp;&rarr;&nbsp; code <span data-code class="text-mt-rose font-semibold">159</span>
+        &nbsp;&rarr;&nbsp; decoded <span data-dec class="text-mt-lav font-semibold">3.00</span>
+    </p>
+    <p class="text-center font-mono text-xs text-mt-muted mt-1">error <span data-err>0.008</span> &nbsp;&middot;&nbsp; step = (6 &minus; (&minus;2)) / 255 = 0.031</p>
+</div>
+
+<script>
+    import { gsap, draggable, clamp, REDUCED } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-int8-demo').forEach((root) => {
+        const W = Number(root.dataset.w), pad = Number(root.dataset.pad);
+        const vmin = Number(root.dataset.vmin), vmax = Number(root.dataset.vmax);
+        const svg = root.querySelector<SVGSVGElement>('svg')!;
+        const dot = root.querySelector<SVGCircleElement>('[data-dot]')!;
+        const decMark = root.querySelector<SVGLineElement>('[data-decoded]')!;
+        const valEl = root.querySelector<HTMLElement>('[data-val]')!;
+        const codeEl = root.querySelector<HTMLElement>('[data-code]')!;
+        const decEl = root.querySelector<HTMLElement>('[data-dec]')!;
+        const errEl = root.querySelector<HTMLElement>('[data-err]')!;
+
+        const sx = (v: number) => pad + ((v - vmin) / (vmax - vmin)) * (W - 2 * pad);
+        const invX = (px: number) => clamp(vmin + (px - pad) / (W - 2 * pad) * (vmax - vmin), vmin, vmax);
+        const step = (vmax - vmin) / 255;
+
+        let v = 3;
+        function render() {
+            const code = Math.round((v - vmin) / step);
+            const decoded = vmin + code * step;
+            valEl.textContent = v.toFixed(2);
+            codeEl.textContent = String(code);
+            decEl.textContent = decoded.toFixed(2);
+            errEl.textContent = Math.abs(v - decoded).toFixed(3);
+            const toDot = { attr: { cx: sx(v) } };
+            const toDec = { attr: { x1: sx(decoded), x2: sx(decoded) } };
+            if (REDUCED) { gsap.set(dot, toDot); gsap.set(decMark, toDec); }
+            else { gsap.to(dot, { ...toDot, duration: 0.1, overwrite: true }); gsap.to(decMark, { ...toDec, duration: 0.12, overwrite: true }); }
+        }
+        draggable(svg, dot, (x) => { v = Math.round(invX(x) * 10) / 10; render(); });
+        render();
+    });
+</script>

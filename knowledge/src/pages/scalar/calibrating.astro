@@ -1,0 +1,71 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import ExerciseBox from '../../components/ExerciseBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import CalibrateRangeDemo from '../../components/demos/CalibrateRangeDemo.astro';
+---
+
+<LessonLayout title="Calibrating the range" lessonNumber="1.2" section="Scalar quantization">
+
+    <LessonHeader lessonNumber="1.2" title="Calibrating the range" description="The 256 codes are only as good as the min and max you give them. Too wide wastes them; too narrow throws data away.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="default">8 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Where to put the fences</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            The 256 codes are spread evenly between your chosen min and max. Choosing those two fences well is
+            the only real decision in int8. Set them too far apart and most codes land in empty space the data
+            never visits, so the steps near your actual values are needlessly coarse. Set them too close and
+            the outliers fall outside the fence and get <strong>clipped</strong>, flattened onto the edge and
+            losing their real position.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Drag the two window edges below. Green points are quantized cleanly; a point turns red the moment
+            it falls outside and clips. Watch the average error as you go too wide, then too narrow.
+        </p>
+
+        <CalibrateRangeDemo />
+
+        <InsightBox>
+            <p class="text-sm"><strong>Calibration</strong> is choosing min and max. Too wide spends codes on
+            empty range; too narrow clips outliers. The best window just covers the real spread of the data.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">One window, or many</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            A single min and max for a whole vector is the simplest choice, but you can do better by
+            calibrating in smaller groups. Give each dimension its own min and max, or each vector its own,
+            and the fences hug the data more tightly, shrinking the error. The cost is bookkeeping: every
+            extra min and max you store is overhead that eats into the compression. Tighter ranges, more
+            metadata, the same trade-off in miniature.
+        </p>
+        <ExerciseBox title="Work it out">
+            <p class="text-sm text-mt-muted">A vector's values run from -0.8 to 0.9, but you calibrate with a
+            min of -5 and max of 5 "to be safe." Roughly what fraction of the 256 codes ever get used, and
+            what does that do to the error compared with a tight range?</p>
+        </ExerciseBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">int8's only real decision is calibration: where to place the min and max fences.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">Too wide wastes codes on empty range; too narrow clips outliers onto the edge.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">Per-dimension or per-vector ranges cut error but add metadata, the same trade in miniature.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/scalar/range-into-levels" prevLabel="Prev: A range into 256 levels"
+        nextHref="/kmeans/grouping-points" nextLabel="Next: Grouping points"
+    />
+
+</LessonLayout>

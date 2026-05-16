@@ -1,0 +1,101 @@
+---
+/**
+ * Drag a value along a line; it snaps to the nearest of N allowed levels.
+ * Change N (2, 4, 8, 16) and watch the rounding error shrink. (Lesson 0.1.)
+ */
+const W = 360, H = 120, pad = 28, vmax = 10;
+const sx = (v: number) => pad + (v / vmax) * (W - 2 * pad);
+const start = 6.5;
+const levelChoices = [2, 4, 8, 16];
+---
+
+<div class="mt-demo mt-snap-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-pad={pad} data-vmax={vmax}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Drag the value, watch it snap to a level</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="a value on a line snapping to the nearest allowed level">
+        <line x1={pad} y1="64" x2={W - pad} y2="64" stroke="#EFE8E2" stroke-width="6" stroke-linecap="round" />
+        <g data-levels></g>
+        <!-- the stored (snapped) marker -->
+        <line data-store x1={sx(start)} y1="50" x2={sx(start)} y2="78" stroke="#7E7FBC" stroke-width="3" stroke-linecap="round" />
+        <!-- the true value handle -->
+        <circle data-dot cx={sx(start)} cy="64" r="11" fill="#fff" stroke="#C96F5A" stroke-width="3" class="mt-grab" />
+    </svg>
+
+    <div class="flex items-center justify-center gap-2 mt-2 mb-3">
+        {levelChoices.map((n) => (
+            <button data-n={n} class="mt-nbtn text-xs font-mono px-3 py-1 rounded-lg border border-mt-border hover:border-mt-accent transition-colors">{n} levels</button>
+        ))}
+    </div>
+
+    <p class="text-center font-mono text-sm">
+        value <span data-true class="text-mt-accent font-semibold">6.5</span>
+        &nbsp;&rarr;&nbsp; stored <span data-stored class="text-mt-lav font-semibold">6.7</span>
+        &nbsp;&middot;&nbsp; error <span data-err class="text-mt-muted">0.2</span>
+        &nbsp;&middot;&nbsp; <span data-bits class="text-mt-muted">2 bits</span>
+    </p>
+</div>
+
+<script>
+    import { gsap, draggable, clamp, REDUCED } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-snap-demo').forEach((root) => {
+        const W = Number(root.dataset.w), pad = Number(root.dataset.pad), vmax = Number(root.dataset.vmax);
+        const svg = root.querySelector<SVGSVGElement>('svg')!;
+        const dot = root.querySelector<SVGCircleElement>('[data-dot]')!;
+        const store = root.querySelector<SVGLineElement>('[data-store]')!;
+        const levelsG = root.querySelector<SVGGElement>('[data-levels]')!;
+        const trueEl = root.querySelector<HTMLElement>('[data-true]')!;
+        const storedEl = root.querySelector<HTMLElement>('[data-stored]')!;
+        const errEl = root.querySelector<HTMLElement>('[data-err]')!;
+        const bitsEl = root.querySelector<HTMLElement>('[data-bits]')!;
+        const btns = Array.from(root.querySelectorAll<HTMLButtonElement>('.mt-nbtn'));
+
+        const sx = (v: number) => pad + (v / vmax) * (W - 2 * pad);
+        const invX = (px: number) => clamp((px - pad) / (W - 2 * pad) * vmax, 0, vmax);
+
+        let v = 6.5, N = 4;
+        const levelOf = (val: number) => {
+            const stepV = vmax / (N - 1);
+            return Math.round(val / stepV) * stepV;
+        };
+
+        function drawLevels() {
+            const stepV = vmax / (N - 1);
+            let html = '';
+            for (let i = 0; i < N; i++) {
+                const x = sx(i * stepV);
+                html += `<line x1="${x}" y1="58" x2="${x}" y2="70" stroke="#D8D2CB" stroke-width="2" stroke-linecap="round" />`;
+            }
+            levelsG.innerHTML = html;
+            bitsEl.textContent = `${Math.log2(N)} bits`;
+        }
+
+        function render() {
+            const stored = levelOf(v);
+            const err = Math.abs(v - stored);
+            trueEl.textContent = v.toFixed(1);
+            storedEl.textContent = stored.toFixed(1);
+            errEl.textContent = err.toFixed(1);
+            const toDot = { attr: { cx: sx(v) } };
+            const toStore = { attr: { x1: sx(stored), x2: sx(stored) } };
+            if (REDUCED) { gsap.set(dot, toDot); gsap.set(store, toStore); }
+            else { gsap.to(dot, { ...toDot, duration: 0.12, overwrite: true }); gsap.to(store, { ...toStore, duration: 0.18, overwrite: true }); }
+        }
+
+        function setN(n: number) {
+            N = n;
+            btns.forEach((b) => b.classList.toggle('mt-nbtn-on', Number(b.dataset.n) === n));
+            drawLevels();
+            render();
+        }
+
+        draggable(svg, dot, (x) => { v = Math.round(invX(x) * 2) / 2; render(); });
+        btns.forEach((b) => b.addEventListener('click', () => setN(Number(b.dataset.n))));
+
+        setN(4);
+    });
+</script>
+
+<style>
+    .mt-nbtn-on { border-color: #C96F5A; background: #FBEEE9; color: #C96F5A; }
+</style>

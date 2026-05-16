@@ -1,0 +1,70 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import Formula from '../../components/Formula.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import EncodeBytesDemo from '../../components/demos/EncodeBytesDemo.astro';
+---
+
+<LessonLayout title="Encoding to bytes" lessonNumber="3.2" section="Product quantization">
+
+    <LessonHeader lessonNumber="3.2" title="Encoding to bytes" description="With one codebook per chunk, encoding a vector is just a row of independent lookups: one byte per chunk.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="default">8 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">A row of independent lookups</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Encoding is the payoff. For each chunk, find the nearest entry in that chunk's codebook and write
+            down its index. The chunks do not talk to each other; each is its own little codebook lookup. A
+            128-number vector split into 8 chunks becomes a row of 8 bytes.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Drag the point in any of the three chunks below. Only that chunk's code changes; the others stay
+            put. The whole vector is now the short code row at the bottom.
+        </p>
+
+        <EncodeBytesDemo />
+
+        <InsightBox>
+            <p class="text-sm"><strong>Encoding</strong> a vector is M independent nearest-entry lookups, one
+            per chunk, producing M bytes. The chunks are quantized completely separately.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">The compression, counted</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Now the numbers that make this worth doing. Take a real embedding: 128 dimensions of 32-bit
+            floats is 512 bytes. Split into 8 chunks, it encodes to 8 bytes. That is a 64 times reduction, and
+            the codebooks add only a few kilobytes shared across the entire dataset, however many millions of
+            vectors there are.
+        </p>
+        <Formula caption="128-dim float vector to an 8-chunk PQ code">
+            512 bytes &rarr; 8 bytes &nbsp;=&nbsp; 64&times; smaller
+        </Formula>
+        <p class="text-mt-muted leading-relaxed">
+            The codes are tiny, but they are lossy. Each chunk now points at its representative, not its real
+            value. The next lesson measures exactly how much was lost.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">Encoding is M independent codebook lookups; each chunk becomes one byte, ignoring the others.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">A 128-dim float vector encodes to 8 bytes, a 64x reduction, with codebooks shared across the dataset.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">The codes are lossy: each chunk now stands for its representative, not its exact value.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/pq/splitting-into-chunks" prevLabel="Prev: Splitting into chunks"
+        nextHref="/pq/reconstruction-error" nextLabel="Next: Reconstruction error"
+    />
+
+</LessonLayout>

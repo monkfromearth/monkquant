@@ -1,0 +1,104 @@
+---
+/**
+ * Drag bit-depth from 1 to 8. A smooth signal gets approximated by 2^bits levels.
+ * Memory rises with bits; the average error falls. The whole trade-off, in one figure. (Lesson 0.2.)
+ */
+const W = 360, H = 170, padX = 16, top = 14, bot = 120, tmax = 8;
+const kx = (t: number) => padX + (t / 1) * (W - 2 * padX); // t in 0..1
+---
+
+<div class="mt-demo mt-bitdepth-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-padx={padX} data-top={top} data-bot={bot}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Drag the knob to change how many bits</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="a smooth signal approximated by fewer or more quantization levels as bits change">
+        <g data-grid></g>
+        <path data-smooth fill="none" stroke="#D8D2CB" stroke-width="2.5" />
+        <path data-step fill="none" stroke="#C96F5A" stroke-width="3" stroke-linejoin="round" />
+        <!-- bit-depth track + knob -->
+        <line x1={padX} y1="150" x2={W - padX} y2="150" stroke="#EFE8E2" stroke-width="6" stroke-linecap="round" />
+        <circle data-knob cx={kx((4 - 1) / (tmax - 1))} cy="150" r="10" fill="#fff" stroke="#7E7FBC" stroke-width="3" class="mt-grab" />
+    </svg>
+
+    <p class="text-center font-mono text-sm mt-1">
+        <span data-bits class="text-mt-lav font-semibold">4 bits</span>
+        &nbsp;=&nbsp; <span data-levels class="text-mt-accent font-semibold">16</span> levels
+        &nbsp;&middot;&nbsp; error <span data-err class="text-mt-muted">0.03</span>
+    </p>
+    <div class="flex justify-center gap-6 mt-3 text-xs font-mono text-mt-muted">
+        <span>memory <span data-mem class="inline-block w-24 h-2 align-middle bg-mt-bg rounded-full overflow-hidden border border-mt-border"><span data-membar class="block h-full bg-mt-lav" style="width:50%"></span></span></span>
+        <span>error <span data-errbar-wrap class="inline-block w-24 h-2 align-middle bg-mt-bg rounded-full overflow-hidden border border-mt-border"><span data-errbar class="block h-full bg-mt-accent" style="width:30%"></span></span></span>
+    </div>
+</div>
+
+<script>
+    import { gsap, draggable, clamp, REDUCED } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-bitdepth-demo').forEach((root) => {
+        const W = Number(root.dataset.w), padX = Number(root.dataset.padx);
+        const top = Number(root.dataset.top), bot = Number(root.dataset.bot);
+        const tmax = 8;
+        const svg = root.querySelector<SVGSVGElement>('svg')!;
+        const smooth = root.querySelector<SVGPathElement>('[data-smooth]')!;
+        const step = root.querySelector<SVGPathElement>('[data-step]')!;
+        const knob = root.querySelector<SVGCircleElement>('[data-knob]')!;
+        const grid = root.querySelector<SVGGElement>('[data-grid]')!;
+        const bitsEl = root.querySelector<HTMLElement>('[data-bits]')!;
+        const levelsEl = root.querySelector<HTMLElement>('[data-levels]')!;
+        const errEl = root.querySelector<HTMLElement>('[data-err]')!;
+        const memBar = root.querySelector<HTMLElement>('[data-membar]')!;
+        const errBar = root.querySelector<HTMLElement>('[data-errbar]')!;
+
+        const padR = padX;
+        const kx = (frac: number) => padX + frac * (W - 2 * padR);
+        const invK = (px: number) => clamp((px - padX) / (W - 2 * padR), 0, 1);
+
+        // signal: a smooth wave sampled across the width, values in [0,1]
+        const N = 60;
+        const xs = Array.from({ length: N }, (_, i) => i / (N - 1));
+        const sig = xs.map((x) => 0.5 + 0.42 * Math.sin(x * Math.PI * 2.2) * Math.cos(x * Math.PI * 0.6));
+        const px = (x: number) => padX + x * (W - 2 * padX);
+        const py = (v: number) => bot - v * (bot - top);
+
+        let bits = 4;
+
+        function build() {
+            // smooth path
+            smooth.setAttribute('d', xs.map((x, i) => `${i ? 'L' : 'M'}${px(x).toFixed(1)},${py(sig[i]).toFixed(1)}`).join(' '));
+            const L = 2 ** bits;
+            const q = (v: number) => Math.round(v * (L - 1)) / (L - 1);
+            // stepped path (sample-and-hold look)
+            let d = '';
+            xs.forEach((x, i) => {
+                const yy = py(q(sig[i]));
+                d += i ? ` L${px(x).toFixed(1)},${yy.toFixed(1)}` : `M${px(x).toFixed(1)},${yy.toFixed(1)}`;
+            });
+            step.setAttribute('d', d);
+            // grid of the allowed levels (cap the drawn lines so it stays readable)
+            const drawLevels = Math.min(L, 32);
+            let g = '';
+            for (let i = 0; i < drawLevels; i++) {
+                const v = i / (drawLevels - 1);
+                g += `<line x1="${padX}" y1="${py(v).toFixed(1)}" x2="${W - padX}" y2="${py(v).toFixed(1)}" stroke="#F4EFEA" stroke-width="1" />`;
+            }
+            grid.innerHTML = g;
+            // average error
+            const err = sig.reduce((a, v) => a + Math.abs(v - q(v)), 0) / sig.length;
+            bitsEl.textContent = `${bits} bits`;
+            levelsEl.textContent = String(L);
+            errEl.textContent = err.toFixed(3);
+            memBar.style.width = `${(bits / tmax) * 100}%`;
+            errBar.style.width = `${clamp(err / 0.18, 0, 1) * 100}%`;
+        }
+
+        function setBits(b: number) {
+            bits = clamp(Math.round(b), 1, tmax);
+            const frac = (bits - 1) / (tmax - 1);
+            const to = { attr: { cx: kx(frac) } };
+            REDUCED ? gsap.set(knob, to) : gsap.to(knob, { ...to, duration: 0.12, overwrite: true });
+            build();
+        }
+
+        draggable(svg, knob, (x) => setBits(1 + invK(x) * (tmax - 1)));
+        setBits(4);
+    });
+</script>

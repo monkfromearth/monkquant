@@ -1,0 +1,78 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import BitDepthDemo from '../../components/demos/BitDepthDemo.astro';
+---
+
+<LessonLayout title="Memory vs accuracy" lessonNumber="0.2" section="The trade-off">
+
+    <LessonHeader lessonNumber="0.2" title="Memory vs accuracy" description="Every bit you add buys accuracy and costs memory. Quantization is the art of choosing where on that curve to sit.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="default">8 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">The two dials move together</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Picture sketching a smooth hill using only graph-paper steps. With a few coarse steps the sketch
+            is blocky and wrong in places, but it takes almost no ink. Add finer steps and the sketch hugs
+            the hill, at the cost of more ink. The hill is the real signal, the steps are the levels, and the
+            ink is memory.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Drag the knob below from 1 bit up to 8. Watch the stepped red line close in on the smooth grey
+            one as the error gauge falls, while the memory gauge climbs. The two move in opposite directions,
+            always.
+        </p>
+
+        <BitDepthDemo />
+
+        <InsightBox>
+            <p class="text-sm">Bits trade directly against error. Spending more bits lowers the average
+            quantization error but raises the memory cost. There is no setting that wins both.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Why the gains taper off</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Going from 1 bit to 2 bits is dramatic: the error roughly halves. Going from 7 bits to 8 barely
+            moves the line, because the steps are already finer than the signal's own wobble. This is the
+            shape of almost every quantization curve: big wins early, then diminishing returns. The skill is
+            stopping at the point where one more bit no longer earns its keep.
+        </p>
+        <div class="bg-white border border-mt-border rounded-xl p-5 font-mono text-sm leading-relaxed">
+            1 &rarr; 2 bits: error roughly halves<br />
+            7 &rarr; 8 bits: error barely changes
+        </div>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">This is the whole game</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Every method in this course, from the simple int8 quantizer to the 2026 research, is a different
+            answer to one question: for a given memory budget, how small can you make the error? A better
+            method is one whose curve sits lower, more accuracy at the same number of bits. To compare them
+            fairly we need a precise way to measure both axes, which is the next lesson.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">Memory and accuracy are a trade: more bits lower the error and raise the cost, never both at once.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">The error curve shows big wins for the first few bits, then diminishing returns.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">A better quantizer is one whose curve sits lower: less error for the same memory.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/foundations/fewer-bits" prevLabel="Prev: Fewer bits, on purpose"
+        nextHref="/foundations/the-ruler" nextLabel="Next: The ruler"
+    />
+
+</LessonLayout>

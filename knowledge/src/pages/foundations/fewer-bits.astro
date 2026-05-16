@@ -1,0 +1,87 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import SnapLevelsDemo from '../../components/demos/SnapLevelsDemo.astro';
+---
+
+<LessonLayout title="Fewer bits, on purpose" lessonNumber="0.1" section="The trade-off">
+
+    <LessonHeader lessonNumber="0.1" title="Fewer bits, on purpose" description="Quantization is rounding with intent: keep only a few allowed levels, and snap every value to the nearest one.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="default">8 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">You already do this</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Ask someone the time and they say "quarter past," not "thirteen minutes and forty seconds past."
+            They round to a small set of allowed answers because it is close enough and far easier to carry.
+            Write 3.14 instead of 3.14159 and you have done the same thing: thrown away detail you did not
+            need, to save space.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            That is all quantization is. Pick a handful of allowed values, the <strong>levels</strong>, and
+            store each real number as the nearest level. Drag the value below and watch it snap. Then change
+            how many levels there are.
+        </p>
+
+        <SnapLevelsDemo />
+
+        <InsightBox>
+            <p class="text-sm">Quantization replaces a continuous value with the nearest of a fixed set of
+            <strong>levels</strong>. The gap between the real value and the stored level is the
+            <strong>quantization error</strong>.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">More levels, less error</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            With only 4 levels spread across 0 to 10, the value 6.5 has nowhere exact to land. The nearest
+            level is about 6.7, so you store 6.7 and accept an error of 0.2. Add more levels and the nearest
+            one sits closer, so the error shrinks. The demo makes this concrete: 2 levels are coarse, 16 are
+            fine.
+        </p>
+        <div class="bg-white border border-mt-border rounded-xl p-5 mb-4 font-mono text-sm leading-relaxed">
+            value 6.5, 4 levels &nbsp;&rarr;&nbsp; nearest 6.7, error 0.2<br />
+            value 6.5, 16 levels &nbsp;&rarr;&nbsp; nearest 6.5, error 0.0
+        </div>
+        <p class="text-mt-muted leading-relaxed">
+            The catch is that more levels cost more space to write down, which is the whole trade-off and the
+            subject of the next lesson.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Levels are counted in bits</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            How much space a level costs is measured in <strong>bits</strong>. With one bit you can name 2
+            levels, with two bits 4, with three bits 8. In general, b bits name 2 to the power b levels. The
+            number you will meet most often is 8 bits, one <strong>byte</strong>, which names 256 levels.
+            That is the size of a single number after the simplest quantizer in this course.
+        </p>
+        <div class="bg-white border border-mt-border rounded-xl p-5 font-mono text-sm leading-relaxed">
+            1 bit &rarr; 2 levels &nbsp;&middot;&nbsp; 2 bits &rarr; 4 &nbsp;&middot;&nbsp; 4 bits &rarr; 16
+            &nbsp;&middot;&nbsp; 8 bits &rarr; 256
+        </div>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">Quantization snaps each value to the nearest of a fixed set of levels. The leftover gap is the quantization error.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">More levels mean smaller error, because the nearest level sits closer to the true value.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">Levels are paid for in bits: b bits buy 2^b levels, and 8 bits (one byte) buy 256.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/learn" prevLabel="Course map"
+        nextHref="/foundations/memory-vs-accuracy" nextLabel="Next: Memory vs accuracy"
+    />
+
+</LessonLayout>

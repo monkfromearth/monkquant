@@ -1,0 +1,102 @@
+---
+/**
+ * Toggle the three methods on one recall-versus-compression plot and drag the operating point
+ * on the active one. The shapes are illustrative, the point of the lesson: a benchmark, not an
+ * argument, is what settles which curve is really higher. (Lesson 5.3.)
+ */
+const W = 360, H = 230, L = 40, R = 16, T = 16, B = 40;
+---
+
+<div class="mt-demo mt-compare-demo my-6 bg-white border border-mt-border rounded-2xl p-6" data-w={W} data-l={L} data-r={R} data-t={T} data-b={B} data-h={H}>
+    <p class="text-xs uppercase tracking-wide text-mt-muted font-semibold mb-3 text-center">Compare the curves (shapes illustrative)</p>
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-md mx-auto block" role="img" aria-label="recall versus compression curves for product quantization, RaBitQ and TurboQuant">
+        <line x1={L} y1={T} x2={L} y2={H - B} stroke="#E8E4DF" stroke-width="1.5" />
+        <line x1={L} y1={H - B} x2={W - R} y2={H - B} stroke="#E8E4DF" stroke-width="1.5" />
+        <text x="6" y={T + 6} font-size="9" font-family="monospace" fill="#6B6560">recall</text>
+        <text x={W - R} y={H - B + 28} text-anchor="end" font-size="9" font-family="monospace" fill="#6B6560">compression &rarr;</text>
+        <g data-curves></g>
+        <line data-guide x1="0" y1="0" x2="0" y2="0" stroke="#E3DDD6" stroke-width="1" stroke-dasharray="3 3" />
+        <circle data-op r="9" fill="#fff" stroke="#322E45" stroke-width="3" class="mt-grab" />
+    </svg>
+
+    <div class="flex items-center justify-center gap-2 mt-1">
+        <button data-mid="pq" class="mt-cbtn text-xs font-mono px-3 py-1 rounded-lg border border-mt-border transition-colors">PQ</button>
+        <button data-mid="rabitq" class="mt-cbtn text-xs font-mono px-3 py-1 rounded-lg border border-mt-border transition-colors">RaBitQ</button>
+        <button data-mid="turbo" class="mt-cbtn text-xs font-mono px-3 py-1 rounded-lg border border-mt-border transition-colors">TurboQuant</button>
+    </div>
+    <p class="text-center font-mono text-sm mt-2">
+        <span data-active class="font-semibold">TurboQuant</span> at ratio <span data-ratio class="text-mt-accent font-semibold">16&times;</span>
+        &nbsp;&middot;&nbsp; recall@10 <span data-recall class="text-mt-lav font-semibold">0.94</span>
+    </p>
+</div>
+
+<script>
+    import { gsap, draggable, clamp } from '../../lib/interact';
+
+    document.querySelectorAll<HTMLElement>('.mt-compare-demo').forEach((root) => {
+        const W = Number(root.dataset.w), L = Number(root.dataset.l), R = Number(root.dataset.r);
+        const T = Number(root.dataset.t), B = Number(root.dataset.b), H = Number(root.dataset.h);
+        const svg = root.querySelector<SVGSVGElement>('svg')!;
+        const curvesG = root.querySelector<SVGGElement>('[data-curves]')!;
+        const op = root.querySelector<SVGCircleElement>('[data-op]')!;
+        const guide = root.querySelector<SVGLineElement>('[data-guide]')!;
+        const btns = Array.from(root.querySelectorAll<HTMLButtonElement>('.mt-cbtn'));
+        const activeEl = root.querySelector<HTMLElement>('[data-active]')!;
+        const ratioEl = root.querySelector<HTMLElement>('[data-ratio]')!;
+        const recallEl = root.querySelector<HTMLElement>('[data-recall]')!;
+
+        const methods: Record<string, { name: string; color: string; a: [number, number][] }> = {
+            pq:     { name: 'PQ',         color: '#C96F5A', a: [[2,0.99],[3,0.96],[4,0.90],[5,0.80],[6,0.66]] },
+            rabitq: { name: 'RaBitQ',     color: '#7E7FBC', a: [[2,0.99],[3,0.975],[4,0.93],[5,0.86],[6,0.75]] },
+            turbo:  { name: 'TurboQuant', color: '#5E80C9', a: [[2,0.995],[3,0.98],[4,0.94],[5,0.88],[6,0.78]] },
+        };
+        const rmin = 0.6, rmax = 1.0;
+        const px = (l: number) => L + ((l - 2) / 4) * (W - R - L);
+        const py = (r: number) => (H - B) - ((r - rmin) / (rmax - rmin)) * (H - B - T);
+        const invL = (x: number) => 2 + ((x - L) / (W - R - L)) * 4;
+        const recallAt = (id: string, l: number) => {
+            const a = methods[id].a; l = clamp(l, 2, 6);
+            for (let i = 0; i < a.length - 1; i++) { const [l0, r0] = a[i], [l1, r1] = a[i + 1]; if (l <= l1) return r0 + (r1 - r0) * (l - l0) / (l1 - l0); }
+            return a[a.length - 1][1];
+        };
+
+        const visible = new Set(['pq', 'rabitq', 'turbo']);
+        let active = 'turbo', l = 4;
+
+        function draw() {
+            let html = '';
+            (['pq', 'rabitq', 'turbo'] as const).forEach((id) => {
+                if (!visible.has(id)) return;
+                let d = '';
+                for (let x = 2; x <= 6.0001; x += 0.1) d += (x === 2 ? 'M' : 'L') + px(x).toFixed(1) + ',' + py(recallAt(id, x)).toFixed(1);
+                const w = id === active ? 3.2 : 2, o = id === active ? 1 : 0.5;
+                html += `<path d="${d}" fill="none" stroke="${methods[id].color}" stroke-width="${w}" opacity="${o}" />`;
+            });
+            curvesG.innerHTML = html;
+            const r = recallAt(active, l);
+            gsap.set(op, { attr: { cx: px(l), cy: py(r) }, stroke: methods[active].color });
+            gsap.set(guide, { attr: { x1: L, y1: py(r), x2: px(l), y2: py(r) } });
+            activeEl.textContent = methods[active].name;
+            activeEl.style.color = methods[active].color;
+            ratioEl.textContent = `${Math.round(2 ** l)}×`;
+            recallEl.textContent = r.toFixed(2);
+            btns.forEach((b) => {
+                const id = b.dataset.mid!;
+                b.style.opacity = visible.has(id) ? '1' : '0.4';
+                b.style.borderColor = id === active ? methods[id].color : '#E8E4DF';
+                b.style.color = visible.has(id) ? methods[id].color : '#6B6560';
+            });
+        }
+        btns.forEach((b) => b.addEventListener('click', () => {
+            const id = b.dataset.mid!;
+            if (active === id) { // toggle visibility only if not the sole one
+                if (visible.has(id) && visible.size > 1) visible.delete(id); else visible.add(id);
+            } else { visible.add(id); active = id; }
+            if (!visible.has(active)) active = [...visible][0];
+            draw();
+        }));
+        draggable(svg, op, (x) => { l = clamp(invL(x), 2, 6); draw(); });
+        draw();
+    });
+</script>

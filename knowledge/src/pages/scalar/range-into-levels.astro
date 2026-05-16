@@ -1,0 +1,85 @@
+---
+import '../../styles/global.css';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import LessonHeader from '../../components/LessonHeader.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import InsightBox from '../../components/InsightBox.astro';
+import Formula from '../../components/Formula.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import Int8RangeDemo from '../../components/demos/Int8RangeDemo.astro';
+---
+
+<LessonLayout title="A range into 256 levels" lessonNumber="1.1" section="Scalar quantization">
+
+    <LessonHeader lessonNumber="1.1" title="A range into 256 levels" description="The simplest quantizer there is: take the range a number lives in, and map it onto 256 evenly spaced integer codes.">
+        <TagBadge variant="concepts">concepts</TagBadge>
+        <TagBadge variant="math">a little math</TagBadge>
+        <TagBadge variant="default">8 min read</TagBadge>
+    </LessonHeader>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">One number, one byte</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Scalar quantization, also called int8, is the hello world of compression. You decide the lowest
+            and highest value a number can take, slice that range into 256 evenly spaced steps, and store the
+            number as the index of its nearest step: an integer from 0 to 255. That index fits in a single
+            byte, where the original 32-bit float took four. A clean 4 times smaller.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Drag the value below. The coral dot is the real number; the readout shows the byte code it becomes
+            and the slightly different number you get back when you decode.
+        </p>
+
+        <Int8RangeDemo />
+
+        <InsightBox>
+            <p class="text-sm"><strong>int8 quantization</strong> stores a float as the nearest of 256 evenly
+            spaced codes (one byte). Decoding turns the code back into a float close to, but rarely exactly,
+            the original.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">The two lines of arithmetic</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            The whole method is two formulas. First a <strong>scale</strong>, the size of one step, which is
+            the range divided by 255. Then encoding is "how many steps from the bottom," rounded; decoding
+            walks that many steps back up from the bottom.
+        </p>
+        <Formula caption="encode to a byte code, then decode back to a float">
+            scale = (max &minus; min) / 255<br />
+            code = round((x &minus; min) / scale)<br />
+            decoded = min + code &times; scale
+        </Formula>
+        <p class="text-mt-muted leading-relaxed">
+            The decoded value differs from the original by at most half a step, so the error is bounded by
+            scale / 2. Narrow the range and the step shrinks, and so does the worst-case error. That single
+            observation is the entire next lesson.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">What it is not</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            int8 is not "use 8-bit numbers" in the vague sense. It is a specific, reversible mapping with a
+            chosen min and max. Get the min and max wrong and the codes are wasted or the data is clipped,
+            even though every number is still technically one byte. The bits are only as good as the range
+            you picked for them.
+        </p>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
+        <div class="space-y-3">
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">int8 maps a chosen range onto 256 integer codes; each number becomes one byte, a 4x saving over a float.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">It is two formulas: a scale of (max - min) / 255, then round to encode and step back to decode.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">The worst-case error is half a step, so a tighter range means a smaller error.</p></div>
+        </div>
+    </section>
+
+    <LessonNav
+        prevHref="/foundations/the-ruler" prevLabel="Prev: The ruler"
+        nextHref="/scalar/calibrating" nextLabel="Next: Calibrating the range"
+    />
+
+</LessonLayout>
