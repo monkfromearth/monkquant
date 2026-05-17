@@ -10,12 +10,12 @@ const jobs = [
 ];
 
 const units = [
-  { n: '0', t: 'The trade-off', d: 'What quantization is, memory versus accuracy, and the ruler that measures the loss.' },
-  { n: '1', t: 'Scalar quantization', d: 'Map a range of floats onto 256 integer levels, one byte each. The hello world.' },
-  { n: '2', t: 'k-means', d: 'Group points into clusters and learn a codebook. The tool product quantization is built on.' },
-  { n: '3', t: 'Product quantization', d: 'Split a vector, replace each chunk with a codebook index, measure the reconstruction error.' },
-  { n: '4', t: 'Searching squashed data', d: 'Asymmetric distance, the recall-versus-compression curve, and a cheap re-ranking pass.' },
-  { n: '5', t: 'The frontier', d: 'TurboQuant, Extended RaBitQ, and the live debate over what is genuinely new.' },
+  { n: '0', t: 'The trade-off', d: 'What quantization is, memory versus accuracy, and the ruler that measures the loss.', href: '/foundations/fewer-bits' },
+  { n: '1', t: 'Scalar quantization', d: 'Map a range of floats onto 256 integer levels, one byte each. The hello world.', href: '/scalar/range-into-levels' },
+  { n: '2', t: 'k-means', d: 'Group points into clusters and learn a codebook. The tool product quantization is built on.', href: '/kmeans/grouping-points' },
+  { n: '3', t: 'Product quantization', d: 'Split a vector, replace each chunk with a codebook index, measure the reconstruction error.', href: '/pq/splitting-into-chunks' },
+  { n: '4', t: 'Searching squashed data', d: 'Asymmetric distance, the recall-versus-compression curve, and a cheap re-ranking pass.', href: '/search/asymmetric-distance' },
+  { n: '5', t: 'The frontier', d: 'TurboQuant, Extended RaBitQ, and the live debate over what is genuinely new.', href: '/frontier/rotate-then-round' },
 ];
 ---
 
@@ -112,7 +112,7 @@ const units = [
   <section id="course" class="max-w-3xl mx-auto px-6 py-14 border-t border-mt-border">
     <div class="flex items-center justify-between mb-2">
       <p class="text-xs font-mono uppercase tracking-widest text-mt-accent">The course</p>
-      <span class="text-xs font-mono px-2 py-0.5 rounded bg-mt-greenLight text-mt-green font-semibold">in progress</span>
+      <span class="text-xs font-mono px-2 py-0.5 rounded bg-mt-greenLight text-mt-green font-semibold">16 lessons</span>
     </div>
     <h2 class="text-2xl font-bold mb-4">What you'll learn</h2>
     <p class="text-mt-muted leading-relaxed mb-8 max-w-2xl">
@@ -123,13 +123,13 @@ const units = [
     <ol class="space-y-3">
       {units.map((u) => (
         <li>
-          <div class="flex items-start gap-4 bg-mt-card border border-mt-border rounded-xl p-5">
+          <a href={base + u.href} class="flex items-start gap-4 bg-mt-card border border-mt-border rounded-xl p-5 hover:border-mt-accent transition-colors group">
             <span class="shrink-0 w-9 h-9 rounded-lg bg-mt-bg border border-mt-border flex items-center justify-center font-mono text-sm text-mt-muted">{u.n}</span>
             <div>
-              <p class="font-semibold">{u.t}</p>
+              <p class="font-semibold group-hover:text-mt-accent transition-colors">{u.t}</p>
               <p class="text-sm text-mt-muted leading-relaxed">{u.d}</p>
             </div>
-          </div>
+          </a>
         </li>
       ))}
     </ol>

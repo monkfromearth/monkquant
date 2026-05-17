@@ -7,55 +7,56 @@ const units = [
     n: '0', t: 'The trade-off',
     d: 'What quantization is, and how we measure whether it worked.',
     lessons: [
-      'Fewer bits, on purpose',
-      'Memory versus accuracy',
-      'The ruler: recall and compression ratio',
+      { num: '0.1', t: 'Fewer bits, on purpose', href: '/foundations/fewer-bits' },
+      { num: '0.2', t: 'Memory vs accuracy', href: '/foundations/memory-vs-accuracy' },
+      { num: '0.3', t: 'The ruler: recall and compression', href: '/foundations/the-ruler' },
     ],
   },
   {
     n: '1', t: 'Scalar quantization',
     d: 'The simplest compressor: a range of floats onto 256 integer levels.',
     lessons: [
-      'A range into 256 levels',
-      'Calibrating the range',
+      { num: '1.1', t: 'A range into 256 levels', href: '/scalar/range-into-levels' },
+      { num: '1.2', t: 'Calibrating the range', href: '/scalar/calibrating' },
     ],
   },
   {
     n: '2', t: 'k-means',
     d: 'Grouping points into clusters and learning a codebook.',
     lessons: [
-      'Grouping points',
-      'Codebooks: a vocabulary of vectors',
+      { num: '2.1', t: 'Grouping points', href: '/kmeans/grouping-points' },
+      { num: '2.2', t: 'Codebooks: a vocabulary of vectors', href: '/kmeans/codebooks' },
     ],
   },
   {
     n: '3', t: 'Product quantization',
     d: 'Split a vector, replace each chunk with a codebook index.',
     lessons: [
-      'Splitting a vector into chunks',
-      'Encoding to bytes',
-      'Reconstruction error',
+      { num: '3.1', t: 'Splitting a vector into chunks', href: '/pq/splitting-into-chunks' },
+      { num: '3.2', t: 'Encoding to bytes', href: '/pq/encoding-to-bytes' },
+      { num: '3.3', t: 'Reconstruction error', href: '/pq/reconstruction-error' },
     ],
   },
   {
     n: '4', t: 'Searching squashed data',
     d: 'Estimate closeness from compressed vectors, and draw the curve.',
     lessons: [
-      'Asymmetric distance',
-      'Recall versus compression: the curve',
-      'Re-ranking the candidates',
+      { num: '4.1', t: 'Asymmetric distance', href: '/search/asymmetric-distance' },
+      { num: '4.2', t: 'Recall vs compression: the curve', href: '/search/recall-vs-compression' },
+      { num: '4.3', t: 'Re-ranking the candidates', href: '/search/re-ranking' },
     ],
   },
   {
     n: '5', t: 'The frontier',
     d: 'The 2026 methods, and the debate over what is genuinely new.',
     lessons: [
-      'Rotate, then round (TurboQuant)',
-      'RaBitQ and the error bound',
-      'The novelty debate',
+      { num: '5.1', t: 'Rotate, then round (TurboQuant)', href: '/frontier/rotate-then-round' },
+      { num: '5.2', t: 'RaBitQ and the error bound', href: '/frontier/rabitq-bound' },
+      { num: '5.3', t: 'The novelty debate', href: '/frontier/the-novelty-debate' },
     ],
   },
 ];
+const total = units.reduce((a, u) => a + u.lessons.length, 0);
 ---
 
 <!DOCTYPE html>
@@ -64,7 +65,7 @@ const units = [
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Course · monkquant</title>
-  <meta name="description" content="The monkquant course map: six units that teach quantization from the trade-off through scalar int8, k-means, product quantization, and the 2026 frontier." />
+  <meta name="description" content="The monkquant course: six units that teach quantization from the trade-off through scalar int8, k-means, product quantization, and the 2026 frontier, with an interactive demo in every lesson." />
   <link rel="icon" type="image/svg+xml" href={base + "/logo.svg"} />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -86,8 +87,8 @@ const units = [
   <header class="max-w-3xl mx-auto px-6 pt-16 pb-10 text-center">
     <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mb-4">The course</h1>
     <p class="text-lg text-mt-muted leading-relaxed max-w-xl mx-auto">
-      Six units, building from the trade-off up to the 2026 frontier. Each concept gets a demo you can drive,
-      then the implementation is left to you. Lessons land here as they are written.
+      Six units and {total} lessons, building from the trade-off up to the 2026 frontier. Every lesson has a
+      demo you can drive, then leaves the implementation to you. Start at the top.
     </p>
   </header>
 
@@ -100,11 +101,14 @@ const units = [
             <div class="flex-1">
               <h2 class="text-lg font-bold">{u.t}</h2>
               <p class="text-sm text-mt-muted leading-relaxed mb-4">{u.d}</p>
-              <ul class="space-y-2">
+              <ul class="space-y-1">
                 {u.lessons.map((l) => (
-                  <li class="flex items-center justify-between gap-3 text-sm border-t border-mt-border pt-2">
-                    <span>{l}</span>
-                    <span class="shrink-0 text-xs font-mono px-2 py-0.5 rounded bg-mt-bg text-mt-locked border border-mt-border">soon</span>
+                  <li>
+                    <a href={base + l.href} class="flex items-center gap-3 text-sm border-t border-mt-border py-2 group hover:text-mt-accent transition-colors">
+                      <span class="font-mono text-xs text-mt-muted w-8">{l.num}</span>
+                      <span class="group-hover:text-mt-accent transition-colors">{l.t}</span>
+                      <svg class="w-3.5 h-3.5 ml-auto text-mt-muted group-hover:text-mt-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -113,6 +117,9 @@ const units = [
         </li>
       ))}
     </ol>
+    <div class="mt-8 text-center">
+      <a href={base + "/foundations/fewer-bits"} class="px-5 py-2.5 rounded-lg bg-mt-accent text-white font-semibold text-sm hover:opacity-90 transition-opacity inline-block">Start lesson 0.1 &rarr;</a>
+    </div>
   </main>
 
   <footer class="border-t border-mt-border py-8 text-center text-mt-muted text-sm">
