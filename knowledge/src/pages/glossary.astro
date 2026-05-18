@@ -6,14 +6,14 @@ const terms = [
   { t: 'Quantization', d: 'Storing numbers using fewer bits by allowing only a limited set of levels and snapping each value to the nearest one. Saves memory, costs a little accuracy.' },
   { t: 'Scalar quantization (int8)', d: 'The simplest form: map a range of float values onto 256 integer levels, one byte each. Roughly 4x smaller than 32-bit floats.' },
   { t: 'Product quantization (PQ)', d: 'Split a vector into chunks, and replace each chunk with the index of its nearest entry in a small learned codebook. The classic method behind FAISS.' },
-  { t: 'Codebook', d: 'A small set of representative vectors (centroids) learned from the data. Each chunk of a vector is stored as the index of its closest codebook entry.' },
-  { t: 'Centroid', d: 'The center of a cluster of points, found by k-means. A codebook is a list of centroids.' },
+  { t: 'Codebook', d: 'A short, numbered list of representative vectors (the centroids k-means found). To store a vector you save the position of its nearest entry in this list, not the vector itself.' },
+  { t: 'Centroid', d: 'The center point of a cluster, sitting at the average position of the points in it; k-means is what finds them. The centroids become a codebook\'s entries.' },
   { t: 'k-means', d: 'A clustering method: repeatedly assign each point to its nearest center, then move each center to the average of its points. Used to train PQ codebooks.' },
   { t: 'Compression ratio', d: 'Original size divided by compressed size. int8 gives about 4x; product quantization can reach tens of times smaller.' },
   { t: 'recall@k', d: 'Of the true k nearest neighbors of a query, how many the compressed search also finds. The accuracy side of the trade-off.' },
   { t: 'Asymmetric distance', d: 'Keep the query at full precision and only the stored vectors compressed, then estimate distance with a small lookup table. More accurate than compressing both sides.' },
   { t: 'Re-ranking', d: 'Use the compressed index to pick a shortlist of candidates, then re-score that shortlist with exact distances. Recovers recall for almost free.' },
-  { t: 'TurboQuant', d: 'A 2026 method (Google Research): randomly rotate a vector so its coordinates concentrate, apply an optimal per-coordinate quantizer, then a 1-bit residual correction. Reported near-optimal distortion.' },
+  { t: 'TurboQuant', d: 'A 2026 method (Google Research, arXiv 2504.19874): randomly rotate a vector so its spread evens out, apply an optimal per-coordinate quantizer, then a 1-bit correction for the leftover error (the residual). The paper claims distortion close to the theoretical best; the louder speed and memory numbers are vendor claims to verify.' },
   { t: 'RaBitQ / Extended RaBitQ', d: 'A quantization method with a proven error bound (Gao & Long). Extended RaBitQ generalizes it to several bits per dimension. Shipped in Milvus and Elasticsearch.' },
 ];
 ---

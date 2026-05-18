@@ -19,11 +19,12 @@ import CalibrateRangeDemo from '../../components/demos/CalibrateRangeDemo.astro'
     <section class="mb-14">
         <h2 class="text-xl font-bold mb-4">Where to put the fences</h2>
         <p class="text-mt-muted leading-relaxed mb-4">
-            The 256 codes are spread evenly between your chosen min and max. Choosing those two fences well is
-            the only real decision in int8. Set them too far apart and most codes land in empty space the data
-            never visits, so the steps near your actual values are needlessly coarse. Set them too close and
-            the outliers fall outside the fence and get <strong>clipped</strong>, flattened onto the edge and
-            losing their real position.
+            The 256 codes are spread evenly between your chosen min and max. Choosing those two fences well
+            (the step called <strong>calibration</strong>) is the only real decision in int8. Set them too far
+            apart and most codes land in empty space the data never visits, so the steps near your actual
+            values are needlessly coarse. Set them too close and the outliers (the few values sitting far from
+            the rest) fall outside the fence and get clipped, flattened onto the edge and losing their real
+            position.
         </p>
         <p class="text-mt-muted leading-relaxed mb-4">
             Drag the two window edges below. Green points are quantized cleanly; a point turns red the moment
@@ -44,8 +45,9 @@ import CalibrateRangeDemo from '../../components/demos/CalibrateRangeDemo.astro'
             A single min and max for a whole vector is the simplest choice, but you can do better by
             calibrating in smaller groups. Give each dimension its own min and max, or each vector its own,
             and the fences hug the data more tightly, shrinking the error. The cost is bookkeeping: every
-            extra min and max you store is overhead that eats into the compression. Tighter ranges, more
-            metadata, the same trade-off in miniature.
+            extra min and max is itself a number you have to store alongside the codes (this housekeeping data
+            is called metadata), and it eats into the compression. Tighter ranges, more metadata, the same
+            trade-off in miniature.
         </p>
         <ExerciseBox title="Work it out">
             <p class="text-sm text-mt-muted">A vector's values run from -0.8 to 0.9, but you calibrate with a

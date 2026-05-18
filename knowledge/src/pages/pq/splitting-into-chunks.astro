@@ -21,7 +21,8 @@ import SplitChunksDemo from '../../components/demos/SplitChunksDemo.astro';
             Last unit ended on a wall. To represent a 128-dimensional vector well with a single codebook, you
             would need a dictionary with more entries than there are atoms in a drawer of sand. The space is
             just too big to cover. Product quantization walks around the wall instead of climbing it: cut the
-            long vector into M short <strong>chunks</strong> and quantize each chunk on its own.
+            long vector into a handful of short <strong>chunks</strong> (small slices of the vector, M of them,
+            where M is simply how many pieces you choose) and quantize each chunk on its own.
         </p>
         <p class="text-mt-muted leading-relaxed mb-4">
             A 128-number vector cut into 8 chunks is eight little 16-number vectors. Each lives in a small

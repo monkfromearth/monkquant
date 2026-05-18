@@ -18,10 +18,11 @@ import KMeansDemo from '../../components/demos/KMeansDemo.astro';
     <section class="mb-14">
         <h2 class="text-xl font-bold mb-4">Find the natural clumps</h2>
         <p class="text-mt-muted leading-relaxed mb-4">
-            Scatter a pile of points on a table and your eye instantly sees the clumps. k-means is the
-            recipe that lets a computer do the same, and pin one representative point, a <strong>centre</strong>
-            or centroid, in the middle of each clump. Those centres are exactly the representatives the next
-            unit will compress with.
+            Scatter a pile of points on a table and your eye instantly sees the clumps (groups of nearby
+            points, called clusters). k-means is the recipe that lets a computer do the same, and pin one
+            representative point (a <strong>centre</strong>, also called a centroid) at the average position of
+            each cluster. That centre stands in for every point near it, and those centres are exactly the
+            representatives the next unit will compress with.
         </p>
         <p class="text-mt-muted leading-relaxed mb-4">
             The recipe alternates two moves until nothing changes. <strong>Assign:</strong> colour each point

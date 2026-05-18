@@ -20,8 +20,9 @@ import RerankDemo from '../../components/demos/RerankDemo.astro';
         <p class="text-mt-muted leading-relaxed mb-4">
             Compressed distances are estimates, so the top few they return are sometimes slightly wrong. The
             standard cure is a two-pass search. First pass: use the fast compressed estimates to pull a
-            shortlist of, say, the top 50 candidates. Second pass: re-score just those 50 with exact
-            distances, using the full vectors, and keep the real top few. The exact pass is expensive per
+            shortlist of, say, the top 50 candidates (the rough best guesses, roughly right but not yet
+            trustworthy). Second pass: re-score just those 50 with exact distances, using the full vectors, and
+            keep the real top few. The exact pass is expensive per
             comparison, but you only run it on a tiny shortlist, so it is cheap overall.
         </p>
         <p class="text-mt-muted leading-relaxed mb-4">
@@ -34,8 +35,8 @@ import RerankDemo from '../../components/demos/RerankDemo.astro';
 
         <InsightBox>
             <p class="text-sm"><strong>Re-ranking</strong> takes a shortlist from the fast compressed search,
-            re-scores it with exact distances, and keeps the true top-k. Most lost recall comes back for very
-            little extra work.</p>
+            re-scores it with exact distances, and keeps the true top-k (the k best results you actually want
+            to return). Most lost recall comes back for very little extra work.</p>
         </InsightBox>
     </section>
 

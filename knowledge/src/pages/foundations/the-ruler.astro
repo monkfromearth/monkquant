@@ -18,10 +18,12 @@ import RecallCloudDemo from '../../components/demos/RecallCloudDemo.astro';
     <section class="mb-14">
         <h2 class="text-xl font-bold mb-4">Measuring the size: compression ratio</h2>
         <p class="text-mt-muted leading-relaxed mb-4">
-            The easy axis first. The <strong>compression ratio</strong> is just the original size divided by
-            the compressed size. A vector of 128 numbers stored as 32-bit floats takes 512 bytes. Squash each
-            number to a single byte and it takes 128, a ratio of 4 times. Squash the whole vector to 8 bytes,
-            as product quantization can, and the ratio is 64 times. Bigger is better, and it is exact.
+            The easy axis first. How much smaller did the data get? Take the original size and divide it by
+            the compressed size; that number is the <strong>compression ratio</strong>. A vector (a list of
+            numbers, here 128 of them) stored as 32-bit floats takes 512 bytes. Squash each number to a single
+            byte and it takes 128, a ratio of 4 times. Squash the whole vector down to 8 bytes, as a method
+            later in this course (product quantization) can, and the ratio is 64 times. Bigger is better, and
+            it is exact.
         </p>
         <div class="bg-white border border-mt-border rounded-xl p-5 font-mono text-sm leading-relaxed">
             512 bytes &divide; 128 bytes = 4&times; &nbsp;&middot;&nbsp; 512 &divide; 8 = 64&times;
@@ -56,7 +58,8 @@ import RecallCloudDemo from '../../components/demos/RecallCloudDemo.astro';
             A quiet but important point: you can measure recall without building any fast search index at
             all. Compare every compressed point against the query by brute force, take the nearest k, and
             check them against the exact answer. It is slow, but it isolates exactly what we want to grade:
-            the quality of the compression, not the speed of the lookup. Speed is a separate project's job.
+            the quality of the compression itself, not the speed of the lookup. Speed is a separate project's
+            job.
         </p>
         <p class="text-mt-muted leading-relaxed">
             With both axes pinned down, recall on one and compression ratio on the other, we can draw the
@@ -69,7 +72,7 @@ import RecallCloudDemo from '../../components/demos/RecallCloudDemo.astro';
         <div class="space-y-3">
             <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">Compression ratio is original size over compressed size: exact, and bigger is better.</p></div>
             <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">recall@k is the fraction of the true k nearest neighbours still returned after compression.</p></div>
-            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">Recall can be measured with brute-force search, so it grades the codec alone, not the index.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">Recall can be measured with brute-force search, so it grades the compression itself, not the search index.</p></div>
         </div>
     </section>
 

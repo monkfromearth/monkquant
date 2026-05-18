@@ -46,9 +46,11 @@ import CodebookDemo from '../../components/demos/CodebookDemo.astro';
             costs more to store and search. 256 is the sweet spot the classic methods settled on.
         </p>
         <p class="text-mt-muted leading-relaxed">
-            There is still a problem hiding here. A real embedding has hundreds of dimensions, and to cover
-            that space well with a single codebook you would need an astronomically large dictionary. The next
-            unit is the elegant trick that dodges it.
+            There is still a problem hiding here. A real embedding (the vector an AI model produces to stand
+            for something like a word or an image) has hundreds of dimensions, meaning hundreds of separate
+            numbers in the list. Every extra dimension multiplies the number of distinct shapes the data can
+            take, so to cover that space well with a single codebook you would need a dictionary far too large
+            to ever build or store. The next unit is the elegant trick that dodges it.
         </p>
     </section>
 

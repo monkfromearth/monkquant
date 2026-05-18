@@ -19,7 +19,8 @@ import ReconstructionDemo from '../../components/demos/ReconstructionDemo.astro'
     <section class="mb-14">
         <h2 class="text-xl font-bold mb-4">Stitching the representatives back</h2>
         <p class="text-mt-muted leading-relaxed mb-4">
-            To decode a PQ code, look up each chunk's index in its codebook and paste the representatives back
+            To decode a PQ code (the row of bytes encoding produced last lesson) means to reverse the encoding
+            and recover a vector: look up each chunk's index in its codebook and paste the representatives back
             together in order. The result is a vector shaped like the original but built from a small set of
             stock pieces, so it never matches exactly. The distance between the two is the
             <strong>reconstruction error</strong>, and it is the price you paid in accuracy for the small code.

@@ -20,7 +20,8 @@ import Int8RangeDemo from '../../components/demos/Int8RangeDemo.astro';
     <section class="mb-14">
         <h2 class="text-xl font-bold mb-4">One number, one byte</h2>
         <p class="text-mt-muted leading-relaxed mb-4">
-            Scalar quantization, also called int8, is the hello world of compression. You decide the lowest
+            Scalar quantization, also called int8 because each number ends up stored in a single 8-bit byte,
+            is the hello world of compression. You decide the lowest
             and highest value a number can take, slice that range into 256 evenly spaced steps, and store the
             number as the index of its nearest step: an integer from 0 to 255. That index fits in a single
             byte, where the original 32-bit float took four. A clean 4 times smaller.
@@ -42,9 +43,11 @@ import Int8RangeDemo from '../../components/demos/Int8RangeDemo.astro';
     <section class="mb-14">
         <h2 class="text-xl font-bold mb-4">The two lines of arithmetic</h2>
         <p class="text-mt-muted leading-relaxed mb-4">
-            The whole method is two formulas. First a <strong>scale</strong>, the size of one step, which is
-            the range divided by 255. Then encoding is "how many steps from the bottom," rounded; decoding
-            walks that many steps back up from the bottom.
+            The whole method is two formulas. First, the size of one step (called the <strong>scale</strong>),
+            which is the range divided by 255. Why 255 and not 256? The codes are numbered 0 to 255, so there
+            are 255 gaps between the first code and the last, and the range has to stretch across those gaps.
+            Then encoding is "how many steps from the bottom," rounded; decoding walks that many steps back up
+            from the bottom.
         </p>
         <Formula caption="encode to a byte code, then decode back to a float">
             scale = (max &minus; min) / 255<br />
@@ -62,8 +65,9 @@ import Int8RangeDemo from '../../components/demos/Int8RangeDemo.astro';
         <h2 class="text-xl font-bold mb-4">What it is not</h2>
         <p class="text-mt-muted leading-relaxed mb-4">
             int8 is not "use 8-bit numbers" in the vague sense. It is a specific, reversible mapping with a
-            chosen min and max. Get the min and max wrong and the codes are wasted or the data is clipped,
-            even though every number is still technically one byte. The bits are only as good as the range
+            chosen min and max. Get the min and max wrong and the codes are wasted or the data is clipped (any
+            value past the chosen edge gets frozen at the boundary, losing its real position), even though
+            every number is still technically one byte. The bits are only as good as the range
             you picked for them.
         </p>
     </section>

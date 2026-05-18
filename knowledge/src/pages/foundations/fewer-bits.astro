@@ -10,72 +10,103 @@ import SnapLevelsDemo from '../../components/demos/SnapLevelsDemo.astro';
 
 <LessonLayout title="Fewer bits, on purpose" lessonNumber="0.1" section="The trade-off">
 
-    <LessonHeader lessonNumber="0.1" title="Fewer bits, on purpose" description="Quantization is rounding with intent: keep only a few allowed levels, and snap every value to the nearest one.">
+    <LessonHeader lessonNumber="0.1" title="Fewer bits, on purpose" description="Start at the very beginning: why anyone would store a number less precisely, and what 'a short list of allowed values' actually means.">
         <TagBadge variant="concepts">concepts</TagBadge>
-        <TagBadge variant="default">8 min read</TagBadge>
+        <TagBadge variant="default">9 min read</TagBadge>
     </LessonHeader>
 
     <section class="mb-14">
-        <h2 class="text-xl font-bold mb-4">You already do this</h2>
+        <h2 class="text-xl font-bold mb-4">The problem: too many numbers</h2>
         <p class="text-mt-muted leading-relaxed mb-4">
-            Ask someone the time and they say "quarter past," not "thirteen minutes and forty seconds past."
-            They round to a small set of allowed answers because it is close enough and far easier to carry.
-            Write 3.14 instead of 3.14159 and you have done the same thing: thrown away detail you did not
-            need, to save space.
+            Everything an AI system works with, it stores as numbers. A sentence becomes a list of a few
+            hundred numbers, and so does an image, a user, or a product. A search database is just a huge
+            stack of these lists, often tens of millions of them, which together can fill tens of gigabytes of
+            memory.
         </p>
         <p class="text-mt-muted leading-relaxed mb-4">
-            That is all quantization is. Pick a handful of allowed values, the <strong>levels</strong>, and
-            store each real number as the nearest level. Drag the value below and watch it snap. Then change
-            how many levels there are.
+            Here is where it hurts. A normal number on a computer takes <strong>32 bits</strong> to store. A
+            bit is the smallest possible unit of storage, a single 0 or 1, so one ordinary number already eats
+            32 of them. Multiply that by billions of numbers and you are renting a lot of memory: bigger
+            machines, higher cost, slower systems. The entire point of this project is to make each number
+            take <em>fewer</em> bits, so the whole stack shrinks. This lesson is the one idea that makes that
+            possible.
+        </p>
+        <InsightBox>
+            <p class="text-sm">A <strong>bit</strong> is one unit of storage, a single 0 or 1. A normal number
+            costs 32 bits. The goal of quantization is to spend fewer bits per number, on purpose.</p>
+        </InsightBox>
+    </section>
+
+    <section class="mb-14">
+        <h2 class="text-xl font-bold mb-4">The idea: allow only a few values</h2>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            You cannot shrink a number for free. Something has to give, and the thing you give up is
+            exactness. The trick is to stop allowing every possible value and instead agree on a short list of
+            allowed values. Then you store each real number as the closest value on that list.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            A concrete example. Suppose the only values you are allowed to write down are 0, 2, 4, 6, 8 and
+            10. That is six allowed values, and nothing in between is permitted. Now a number like 6.5 has no
+            exact home, so you record the nearest allowed value instead, which is 6. Each allowed value is
+            called a <strong>level</strong>, and replacing a number with its nearest level is
+            <strong>quantization</strong>. That is the whole idea. Every method in this course is just a
+            smarter way of choosing the levels.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            Drag the dot below to pick a real value. The purple marker underneath shows the nearest level it
+            snaps to, the value you would actually store. Then press the buttons to change how many levels
+            there are, from a coarse 2 up to a finer 16.
         </p>
 
         <SnapLevelsDemo />
 
         <InsightBox>
-            <p class="text-sm">Quantization replaces a continuous value with the nearest of a fixed set of
-            <strong>levels</strong>. The gap between the real value and the stored level is the
-            <strong>quantization error</strong>.</p>
+            <p class="text-sm">A <strong>level</strong> is one of the allowed values you let yourself store.
+            <strong>Quantization</strong> replaces each real number with its nearest level.</p>
         </InsightBox>
     </section>
 
     <section class="mb-14">
-        <h2 class="text-xl font-bold mb-4">More levels, less error</h2>
+        <h2 class="text-xl font-bold mb-4">The price you pay: error</h2>
         <p class="text-mt-muted leading-relaxed mb-4">
-            With only 4 levels spread across 0 to 10, the value 6.5 has nowhere exact to land. The nearest
-            level is about 6.7, so you store 6.7 and accept an error of 0.2. Add more levels and the nearest
-            one sits closer, so the error shrinks. The demo makes this concrete: 2 levels are coarse, 16 are
-            fine.
+            Snapping to the nearest level is almost never exact, and the gap you create has a name: the
+            <strong>quantization error</strong>. With only a few levels spread across 0 to 10, the value 6.5
+            lands on 6 and you are off by 0.5. Add more levels and the nearest one sits closer, so the error
+            shrinks. That is the demo's other lever: 2 levels are coarse and wrong by a lot, 16 are fine and
+            barely wrong.
         </p>
-        <div class="bg-white border border-mt-border rounded-xl p-5 mb-4 font-mono text-sm leading-relaxed">
-            value 6.5, 4 levels &nbsp;&rarr;&nbsp; nearest 6.7, error 0.2<br />
-            value 6.5, 16 levels &nbsp;&rarr;&nbsp; nearest 6.5, error 0.0
+        <div class="bg-white border border-mt-border rounded-xl p-5 font-mono text-sm leading-relaxed">
+            value 6.5, few levels &nbsp;&rarr;&nbsp; nearest 6, error 0.5<br />
+            value 6.5, many levels &nbsp;&rarr;&nbsp; nearest 6.5, error ~0
         </div>
-        <p class="text-mt-muted leading-relaxed">
-            The catch is that more levels cost more space to write down, which is the whole trade-off and the
-            subject of the next lesson.
-        </p>
     </section>
 
     <section class="mb-14">
-        <h2 class="text-xl font-bold mb-4">Levels are counted in bits</h2>
+        <h2 class="text-xl font-bold mb-4">Why this saves bits</h2>
         <p class="text-mt-muted leading-relaxed mb-4">
-            How much space a level costs is measured in <strong>bits</strong>. With one bit you can name 2
-            levels, with two bits 4, with three bits 8. In general, b bits name 2 to the power b levels. The
-            number you will meet most often is 8 bits, one <strong>byte</strong>, which names 256 levels.
-            That is the size of a single number after the simplest quantizer in this course.
+            Now the part that makes the title literal. You never store the level's value, like 6. You store
+            <em>which</em> level you picked: its position in the list, the first allowed value or the third
+            and so on. That position is just a small whole number, a label.
+        </p>
+        <p class="text-mt-muted leading-relaxed mb-4">
+            And a label only needs enough bits to count up to the number of levels. Two levels need a 1-bit
+            label, just 0 or 1. Four levels need 2 bits. Two hundred and fifty-six levels need 8 bits, which
+            is one <strong>byte</strong>. So a shorter list of levels means a shorter label, which means fewer
+            bits per number. "Fewer bits, on purpose" is exactly that: choose a short list of levels, and pay
+            only for the label.
         </p>
         <div class="bg-white border border-mt-border rounded-xl p-5 font-mono text-sm leading-relaxed">
-            1 bit &rarr; 2 levels &nbsp;&middot;&nbsp; 2 bits &rarr; 4 &nbsp;&middot;&nbsp; 4 bits &rarr; 16
-            &nbsp;&middot;&nbsp; 8 bits &rarr; 256
+            2 levels &rarr; 1-bit label &nbsp;&middot;&nbsp; 4 &rarr; 2 bits &nbsp;&middot;&nbsp;
+            16 &rarr; 4 bits &nbsp;&middot;&nbsp; 256 &rarr; 8 bits (1 byte)
         </div>
     </section>
 
     <section class="mb-14">
         <h2 class="text-xl font-bold mb-4">Key takeaways</h2>
         <div class="space-y-3">
-            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">Quantization snaps each value to the nearest of a fixed set of levels. The leftover gap is the quantization error.</p></div>
-            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">More levels mean smaller error, because the nearest level sits closer to the true value.</p></div>
-            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">Levels are paid for in bits: b bits buy 2^b levels, and 8 bits (one byte) buy 256.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">1</span></div><p class="text-sm">AI systems store everything as huge piles of numbers, and a normal number costs 32 bits; the goal is to spend fewer.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">2</span></div><p class="text-sm">Quantization picks a short list of allowed values (levels) and stores each number as the nearest level.</p></div>
+            <div class="flex items-start gap-3"><div class="w-6 h-6 rounded-full bg-mt-accentLight flex items-center justify-center flex-shrink-0 mt-0.5"><span class="text-mt-accent font-bold text-xs">3</span></div><p class="text-sm">You store the level's label, not its value, so fewer levels mean a shorter label and fewer bits, at the cost of a bigger error.</p></div>
         </div>
     </section>
 

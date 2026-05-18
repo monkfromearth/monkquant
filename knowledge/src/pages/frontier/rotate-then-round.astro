@@ -22,9 +22,11 @@ import RotateRoundDemo from '../../components/demos/RotateRoundDemo.astro';
             A plain quantizer treats every coordinate the same, which only works well if every coordinate
             carries a similar share of the spread. Real vectors are lumpy: one direction may hold most of the
             variation while another holds almost none, so a fixed quantizer wastes precision on the quiet
-            coordinates and runs short on the loud ones. A random <strong>rotation</strong> fixes this. After
-            spinning the vector, the spread is shared evenly across all coordinates, and a single
-            per-coordinate quantizer becomes close to the best you could do.
+            coordinates and runs short on the loud ones. A random <strong>rotation</strong> fixes this. A
+            rotation is a mathematical spin of the whole vector, like turning a photo around its centre; doing
+            it at random means picking the spin direction blindly, without looking at the data. After spinning
+            the vector, the spread is shared evenly across all coordinates, and a single per-coordinate
+            quantizer becomes close to the best you could do.
         </p>
         <p class="text-mt-muted leading-relaxed mb-4">
             Drag the handle below to rotate an elongated cloud. When all the spread sits on one axis the error
@@ -46,8 +48,9 @@ import RotateRoundDemo from '../../components/demos/RotateRoundDemo.astro';
         <p class="text-mt-muted leading-relaxed mb-4">
             <strong>TurboQuant</strong> (Zandieh, Daliri, Hadian and Mirrokni at Google Research, arXiv 2504.19874)
             puts this to work in two stages. First, rotate the vector and apply an optimal per-coordinate
-            scalar quantizer, the part the demo shows. Second, take the small leftover error and correct it
-            with a single extra bit per coordinate, which removes the bias from the distance estimate. The
+            scalar quantizer, the part the demo shows. Second, take the small leftover error (called the
+            residual) and correct it with a single extra bit per coordinate, which removes the bias from the
+            distance estimate. The
             paper reports a distortion within a small constant factor of the information-theoretic best
             possible.
         </p>

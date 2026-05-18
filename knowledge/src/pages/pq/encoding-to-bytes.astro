@@ -20,8 +20,9 @@ import EncodeBytesDemo from '../../components/demos/EncodeBytesDemo.astro';
         <h2 class="text-xl font-bold mb-4">A row of independent lookups</h2>
         <p class="text-mt-muted leading-relaxed mb-4">
             Encoding is the payoff. For each chunk, find the nearest entry in that chunk's codebook and write
-            down its index. The chunks do not talk to each other; each is its own little codebook lookup. A
-            128-number vector split into 8 chunks becomes a row of 8 bytes.
+            down its index (its position in that codebook, a whole number from 0 to 255 that fits in one byte).
+            The chunks do not talk to each other; each is its own little codebook lookup. A 128-number vector
+            split into 8 chunks becomes a row of 8 bytes.
         </p>
         <p class="text-mt-muted leading-relaxed mb-4">
             Drag the point in any of the three chunks below. Only that chunk's code changes; the others stay

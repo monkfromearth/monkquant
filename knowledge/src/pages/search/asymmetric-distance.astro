@@ -20,9 +20,10 @@ import AsymmetricDistanceDemo from '../../components/demos/AsymmetricDistanceDem
         <p class="text-mt-muted leading-relaxed mb-4">
             Search asks one question over and over: how far is the query from each stored vector? But the
             stored vectors are now codes, not real values. The naive fix is to quantize the query too and
-            compare code to code. That throws away accuracy on both sides at once. The better move is
-            <strong>asymmetric</strong>: keep the query exactly as it is, and measure to the stored vector's
-            representative.
+            compare code to code. That throws away accuracy on both sides at once: the query gets rounded to
+            its nearest level, the stored vector was already rounded, so you are comparing two blurred values.
+            The better move is <strong>asymmetric</strong> (the two sides are treated differently on purpose):
+            keep the query exactly as it is, and measure only to the stored vector's representative.
         </p>
         <p class="text-mt-muted leading-relaxed mb-4">
             Drag the query below. The coral dashed line is the asymmetric estimate, measured to the stored
@@ -43,7 +44,8 @@ import AsymmetricDistanceDemo from '../../components/demos/AsymmetricDistanceDem
         <p class="text-mt-muted leading-relaxed mb-4">
             Asymmetric distance is not only more accurate, it is cheap to compute at scale. For a query, you
             precompute its distance to all 256 entries in each chunk's codebook once, building a small lookup
-            table. After that, any stored vector's estimated distance is just a handful of table lookups
+            table (a ready-made table of those precomputed distances). After that, any stored vector's
+            estimated distance is just a handful of table lookups
             added together, one per chunk. Millions of comparisons become millions of cheap sums, no
             decompression required.
         </p>

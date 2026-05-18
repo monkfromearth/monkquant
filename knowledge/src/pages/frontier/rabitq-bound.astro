@@ -20,16 +20,18 @@ import RaBitQBoundDemo from '../../components/demos/RaBitQBoundDemo.astro';
         <h2 class="text-xl font-bold mb-4">One bit, with a guarantee</h2>
         <p class="text-mt-muted leading-relaxed mb-4">
             <strong>RaBitQ</strong> (Gao and Long at NTU Singapore, arXiv 2405.12497) rotates the vector, just
-            like TurboQuant, then keeps only the <em>sign</em> of each coordinate: a single bit. One bit per
-            dimension sounds far too crude to search with, and on its own it is. The breakthrough is what the
-            rotation buys: it lets you prove a bound on how wrong the similarity estimate can be, and that
-            bound tightens as the number of dimensions grows.
+            like TurboQuant, then keeps only the <em>sign</em> of each coordinate, that is, whether it is
+            positive or negative: a single bit. One bit per dimension sounds far too crude to search with, and
+            on its own it is. The breakthrough is what the rotation buys: it lets you prove a bound (a
+            guaranteed ceiling on how wrong the similarity estimate can ever be), and that bound tightens as
+            the number of dimensions grows.
         </p>
         <p class="text-mt-muted leading-relaxed mb-4">
             This is why a single bit works for real embeddings, which have hundreds of dimensions. Drag the
             dimension count below. In low dimensions the 1-bit estimate scatters all over; as dimensions grow,
-            it concentrates tightly around the true value. The error shrinks roughly like one over the square
-            root of the dimension.
+            it concentrates tightly around the true value (a high-dimensional effect called concentration:
+            random quantities cluster close to their average once there are enough of them). The error shrinks
+            roughly like one over the square root of the dimension.
         </p>
 
         <RaBitQBoundDemo />

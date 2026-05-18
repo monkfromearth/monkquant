@@ -24,10 +24,11 @@ import RecallCurveDemo from '../../components/demos/RecallCurveDemo.astro';
             practice: at the memory budget I can afford, how good is search still?
         </p>
         <p class="text-mt-muted leading-relaxed mb-4">
-            Drag the operating point along the product quantization curve below. Push right for more
-            compression and watch recall give way. The int8 point sits on its own, a fixed 4 times with very
-            high recall. The shapes here are illustrative; the real numbers come from running the benchmark on
-            a real dataset.
+            Drag the operating point (one chosen setting, a single dot on the curve) along the product
+            quantization curve below. Push right for more compression and watch recall give way. The int8 point
+            sits on its own, fixed at 4 times compression with very high recall. The shapes here are
+            illustrative, drawn to show how the curve behaves, not measured; the real numbers come from running
+            the benchmark on a real dataset.
         </p>
 
         <RecallCurveDemo />
