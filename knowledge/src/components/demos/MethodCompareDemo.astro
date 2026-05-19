@@ -26,8 +26,8 @@ const W = 360, H = 230, L = 40, R = 16, T = 16, B = 40;
         <button data-mid="turbo" class="mt-cbtn text-xs font-mono px-3 py-1 rounded-lg border border-mt-border transition-colors">TurboQuant</button>
     </div>
     <p class="text-center font-mono text-sm mt-2">
-        <span data-active class="font-semibold">TurboQuant</span> at ratio <span data-ratio class="text-mt-accent font-semibold">16&times;</span>
-        &nbsp;&middot;&nbsp; recall@10 <span data-recall class="text-mt-lav font-semibold">0.94</span>
+        <span data-active class="font-semibold">PQ</span> at ratio <span data-ratio class="text-mt-accent font-semibold">16&times;</span>
+        &nbsp;&middot;&nbsp; recall@10 <span data-recall class="text-mt-lav font-semibold">0.91</span>
     </p>
 </div>
 
@@ -46,10 +46,12 @@ const W = 360, H = 230, L = 40, R = 16, T = 16, B = 40;
         const ratioEl = root.querySelector<HTMLElement>('[data-ratio]')!;
         const recallEl = root.querySelector<HTMLElement>('[data-recall]')!;
 
+        // Curves are deliberately drawn close and crossing: no method is shown winning everywhere.
+        // That is the lesson's point. A real ranking comes only from running the benchmark, not from here.
         const methods: Record<string, { name: string; color: string; a: [number, number][] }> = {
-            pq:     { name: 'PQ',         color: '#C96F5A', a: [[2,0.99],[3,0.96],[4,0.90],[5,0.80],[6,0.66]] },
-            rabitq: { name: 'RaBitQ',     color: '#7E7FBC', a: [[2,0.99],[3,0.975],[4,0.93],[5,0.86],[6,0.75]] },
-            turbo:  { name: 'TurboQuant', color: '#5E80C9', a: [[2,0.995],[3,0.98],[4,0.94],[5,0.88],[6,0.78]] },
+            pq:     { name: 'PQ',         color: '#C96F5A', a: [[2,0.990],[3,0.963],[4,0.910],[5,0.840],[6,0.720]] },
+            rabitq: { name: 'RaBitQ',     color: '#7E7FBC', a: [[2,0.988],[3,0.966],[4,0.905],[5,0.848],[6,0.715]] },
+            turbo:  { name: 'TurboQuant', color: '#5E80C9', a: [[2,0.991],[3,0.961],[4,0.913],[5,0.844],[6,0.724]] },
         };
         const rmin = 0.6, rmax = 1.0;
         const px = (l: number) => L + ((l - 2) / 4) * (W - R - L);
@@ -62,7 +64,7 @@ const W = 360, H = 230, L = 40, R = 16, T = 16, B = 40;
         };
 
         const visible = new Set(['pq', 'rabitq', 'turbo']);
-        let active = 'turbo', l = 4;
+        let active = 'pq', l = 4;
 
         function draw() {
             let html = '';
